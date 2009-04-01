@@ -2,41 +2,48 @@
 
 The followin steps will compile a 2.6.26.1 kernel for UML:
 
-# prepare the working directory
-mkdir -p ~/local/linux-src
-cd ~/local/linux-src
+#####################################################################################
+; # prepare the working directory
+; mkdir -p ~/local/linux-src
+; cd ~/local/linux-src
 
-# download the kernel sources, signature and validate
-# you will need the kernel public key to verify, download it
-# from http://www.kernel.org/signature.html and add it to
-# your gpg key ring as a trusted key. its fingerprint is:
-# pub   1024D/517D0F0E 2000-10-10
-#       Key fingerprint = C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E
-# uid                  Linux Kernel Archives Verification Key <ftpadmin@kernel.org>
-# sub   4096g/E50A8F2A 2000-10-10
-wget http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.26.1.tar.bz2
-wget http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.26.1.tar.bz2.sign
-gpg --verify linux-2.6.26.1.tar.bz2.sign linux-2.6.26.1.tar.bz2
+; # download the kernel sources, signature and validate
+; # you will need the kernel public key to verify, download it
+; # from http://www.kernel.org/signature.html and add it to
+; # your gpg key ring as a trusted key. its fingerprint is:
+; # pub   1024D/517D0F0E 2000-10-10
+; #       Key fingerprint = C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E
+; # uid                  Linux Kernel Archives Verification Key <ftpadmin@kernel.org>
+; # sub   4096g/E50A8F2A 2000-10-10
+; wget http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.26.1.tar.bz2
+...
+; wget http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.26.1.tar.bz2.sign
+...
+; gpg --verify linux-2.6.26.1.tar.bz2.sign linux-2.6.26.1.tar.bz2
 gpg: Signature made Sat 02 Aug 2008 01:13:33 AM CEST using DSA key ID 517D0F0E
 gpg: Good signature from "Linux Kernel Archives Verification Key <ftpadmin@kernel.org>"
 
-# untar the kernel sources
-tar -xjf linux-2.6.26.1.tar.bz2
-cd linux-2.6.26.1
+; # untar the kernel sources
+; tar -xjf linux-2.6.26.1.tar.bz2
+; cd linux-2.6.26.1
 
-# generate cscope database to improve source browsing
-make cscope
+; # generate cscope database to improve source browsing
+; make cscope
+... 
+; # generate the default configuration for UML kernels
+; make defconfig ARCH=um
+...
+; # adapt your configuration
+; # I set the arch to my arch and make the kernel staticaly linked
+; # both are UML specific configuration options
+; make menuconfig ARCH=um
+...
+; # compile the kernel
+; make ARCH=um
+...
+; ls -l linux
+####################################################################################
 
-# generate the default configuration for UML kernels
-make defconfig ARCH=um
+Now your UML binary for 2.6.26.1 is at:
 
-# adapt your configuration
-# I set the arch to my arch and make the kernel staticaly linked
-# both are UML specific configuration options
-make menuconfig ARCH=um
-
-# compile the kernel
-make ARCH=um
-ls -l linux
-
-
+~/local/linux-src/linux-2.6.26.1/linux
