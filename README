@@ -1,0 +1,4 @@
+Once the module is compiled, you can load it with the following command :
+
+insmod module.[ko|o]
+
