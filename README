@@ -42,8 +42,19 @@ gpg: Good signature from "Linux Kernel Archives Verification Key <ftpadmin@kerne
 ; make ARCH=um
 ...
 ; ls -l linux
+-rwxr-xr-x 2 alcortes alcortes 21948241 2009-04-01 20:05 linux*
+; # compile and install the kernel modules
+; make modules_install INSTALL_MOD_PATH=modules ARCH=um
+; ls -l modules
+total 4
+drwxr-xr-x 3 alcortes alcortes 4096 2009-04-01 20:30 lib/
+
 ####################################################################################
 
 Now your UML binary for 2.6.26.1 is at:
 
-~/local/linux-src/linux-2.6.26.1/linux
+    ~/local/linux-src/linux-2.6.26.1/linux
+
+And the UML kernel modules are at:
+
+    ~/local/linux-src/linux-2.6.26.1/modules/lib/modules
