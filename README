@@ -2,7 +2,35 @@
 
 Ifacepref is a kernel module for 2.6 linux kernels.
 
-    2. Compilation
+
+
+    2. External data is needed to compile and test!
+
+That's right, you will need about 1,5 GB of external data to compile
+and test ifacepref the way I like. Of course none of these external
+data is included in this distribution. You will have to get it
+yourself.
+
+That way I keep this distribution small and avoid the inclusion of
+external software in the distribution and in my version control
+system.
+
+
+
+  2.1 What external data I need and how do I get it?
+
+To compile the module you will need a full kernel source tree.
+
+To test the module the way I do, you will need an UML kernel and
+some root filesystems to boot it.
+
+I have write some scripts to help you/me to get all these things.
+They are under the extdata directory. You will need to edit the
+CONFIGUREME file before executing those scritps.
+
+
+
+    3. Compilation
 
 To compile a 2.6 linux kernel module you will need a compiled linux
 kernel source tree. I'm going to use UML as the compilation architecture
@@ -11,9 +39,15 @@ as the testing and debugging of the kernel module is much safe and easier
 See doc/00-uml-compilation.txt for instructions about how to compile
 such a kernel.
 
-    2.1 UML rootfs creation
+
+
+    3.1 UML rootfs creation
 
 See doc/01-uml-rootfs-creation.txt for instruction about how to create
 the rootfs for the UML systems.
 
-    3. Test environment
+
+
+    4. Test environment
+
+bla.
