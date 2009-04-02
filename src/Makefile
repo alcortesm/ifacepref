@@ -18,7 +18,9 @@ else
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um modules
 
+clean:
+	make -C $(KERNELDIR) M=$(PWD) ARCH=um clean
+	- rm -f modules.order
+
 endif
 
-clean:
-	- rm -f ifacepref.ko ifacepref.mod.c ifacepref.mod.o ifacepref.o modules.order Module.symvers
