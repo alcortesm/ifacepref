@@ -23,14 +23,14 @@ principal:
 
  ; cd ~/tmp
  ; git clone ssh://violin.it.uc3m.es/users/prof/alcortes/open/ifacepref
- ; cd dhcplab
- ; # trabajo
+ ; cd ifacepref
+ ; # edito fuentes
+ ; # pruebo
  ; # commit
- ; # trabajo
+ ; # edito fuentes
+ ; # pruebo
  ; # commit
- ; # trabajo
- ; # commit
- ...
+...
 
 
 
