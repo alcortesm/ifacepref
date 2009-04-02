@@ -20,8 +20,8 @@
 # 
 # # download the debs you need
 # INCLUDE=ssh,less,valgrind,udev,tshark,tcpdump,udhcpd,udhcpc,psmisc
-# DISTRO=etch
-# /usr/sbin/debootstrap --download-only --include=$INCLUDE $DISTRO $DEBS_DIR http://ftp.debian.org/deb
+# DISTRO=lenny
+# /usr/sbin/debootstrap --download-only --include=$INCLUDE $DISTRO $DEBS_DIR http://ftp.debian.org/debian
 #
 # # build an ad-hoc apt-move.conf file
 # echo "#  Configuration file for the apt-move script.
@@ -37,28 +37,38 @@
 # COPYONLY=yes
 # PKGCOMP=gzip
 # CONTENTS=yes
-# GPGKEY=" > DEBS_DIR/apt-move.conf
+# GPGKEY=" > ${DEBS_DIR}/apt-move.conf
 # 
 # # create a system-wide repo dir
 # sudo mkdir -p /mirrors/debian
 # 
 # # Update the local index 
-# sudo apt-move -c /home/alcortes/apt-move.conf get
+# sudo apt-move -c ${DEBS_DIR}/apt-move.conf get
 #
 # # create the local repo
-# sudo apt-move -c /home/alcortes/apt-move.conf move
+# sudo apt-move -c ${DEBS_DIR}/apt-move.conf move
 #
-# # the new local repo is at /mirrrors/debian
+# # create the local package & release files
+# sudo apt-move -c ${DEBS_DIR}/apt-move.conf packages
+#
+# # the new local repo is at /mirrors/debian
 
 
 
 # CONFIGURE THIS
 
 debianVersion=lenny
-rootfsSize=400 # in MB
+rootfsSize=450 # in MB
 timezone=Europe/Madrid
-umlPath=~/local/linux-src/linux-2.6.26.1/linux
-umlModulesPath=~/local/linux-src/linux-2.6.26.1/modules/lib/modules/
+umlPath=~/local/linux-src/linux-2.6.29/linux
+umlModulesPath=~/local/linux-src/linux-2.6.29/modules/lib/modules
+rootfs_install_dir=~/local/uml-rootfs/ifacepref
+launchscript_file=~/bin/uml-ifacepref
+mkdir -p ${rootfs_install_dir}
+[ ! -d ${rootfs_install_dir} ] && echo "${rootfs_install_dir}: dir not found" && exit 1
+[ ! -r ${rootfs_install_dir} ] && echo "${rootfs_install_dir}: read permission denied" && exit 1
+[ ! -w ${rootfs_install_dir} ] && echo "${rootfs_install_dir}: write permission denied" && exit 1
+[ ! -x ${rootfs_install_dir} ] && echo "${rootfs_install_dir}: exec permission denied" && exit 1
 
 # parse first and only argument to choose between network download
 # or local download of packages
@@ -85,10 +95,8 @@ fi
 # First, generate de run script
 echo '#!/bin/sh
 
-#BASE=${HOME}/local/iro2/3
-BASE=$PWD
-#TMP=${BASE}/tmp
-TMP=$PWD
+BASE=~/local/uml-rootfs/ifacepref
+TMP=${BASE}/tmp
 
 HUB1=${TMP}/hub1.ctl
 HUB2=${TMP}/hub2.ctl
@@ -100,7 +108,18 @@ CLIENT=${BASE}/client.rootfs
 TERM=/usr/bin/xterm
 XTERM=/usr/bin/xterm
 SWITCH=/usr/bin/uml_switch
-UML=/usr/bin/linux
+UML='${umlPath}'
+
+# check base & tmp dir
+[ ! -d ${BASE} ] && echo "${BASE}: dir not found" && exit 1
+[ ! -r ${BASE} ] && echo "${BASE}: read permission denied" && exit 1
+[ ! -w ${BASE} ] && echo "${BASE}: write permission denied" && exit 1
+[ ! -x ${BASE} ] && echo "${BASE}: exec permission denied" && exit 1
+mkdir -p ${TMP}
+[ ! -d ${TMP} ] && echo "${TMP}: dir not found" && exit 1
+[ ! -r ${TMP} ] && echo "${TMP}: read permission denied" && exit 1
+[ ! -w ${TMP} ] && echo "${TMP}: write permission denied" && exit 1
+[ ! -x ${TMP} ] && echo "${TMP}: exec permission denied" && exit 1
 
 # remove leftover from previous incantations
 [ -f ${HUB1} ] && [ ! -w ${HUB1} ] && echo "${HUB1}: write permission denied" && exit 1
@@ -141,10 +160,10 @@ sleep 1
 ${TERM} -bg black -fg white -e ${UML} mem=64M ubd0=${SCOW},${SERVER} eth0=daemon,fe:fd:00:00:02:00,unix,${HUB1} eth1=daemon,fe:fd:00:00:02:01,unix,${HUB2} eth2=daemon,fe:fd:00:00:02:02,unix,${HUB2} eth3=daemon,fe:fd:00:00:02:03,unix,${HUB2} eth4=daemon,fe:fd:00:00:02:04,unix,${HUB2} con=pty con0=fd:0,fd:1 con1=xterm xterm=${XTERM},-T,-e umid=server &
 ${TERM} -bg black -fg white -e ${UML} mem=64M ubd0=${CCOW},${CLIENT} eth0=daemon,fe:fd:00:00:03:00,unix,${HUB1} eth1=daemon,fe:fd:00:00:03:01,unix,${HUB2} eth2=daemon,fe:fd:00:00:03:02,unix,${HUB2} eth3=daemon,fe:fd:00:00:03:03,unix,${HUB2} eth4=daemon,fe:fd:00:00:03:04,unix,${HUB2} con=pty con0=fd:0,fd:1 con1=xterm xterm=${XTERM},-T,-e umid=client &
 
-' > run-dhcplab
-chmod u+x run-dhcplab
+' > ${launchscript_file}
+chmod u+x ${launchscript_file}
 
-echo "########## run-dhcplab script succesfully generated"
+echo "########## ${launchscript_file} script succesfully generated"
 
 
 
@@ -157,10 +176,10 @@ echo "########## run-dhcplab script succesfully generated"
 # Generate the client image (./client.rootfs)
 
 name=client
-packages=ssh,less,valgrind,udev,tshark,tcpdump,udhcpc,psmisc
+packages=ssh,less,valgrind,udev,tshark,tcpdump,psmisc
 numEths=4 # Number of ethernet cards on the client, not counting eth0
 
-image=$PWD/$name.rootfs
+image=${rootfs_install_dir}/$name.rootfs
 
 echo "########## Refreshing sudo passwd"
 sudo touch /tmp/bla
@@ -185,13 +204,13 @@ mountPoint=/mnt/$name
 if [ ! -e $mountPoint ]
 then
     echo "########## Making mount point $mountPoint"
-    sudo mkdir $mountPoint
+    sudo mkdir -p $mountPoint
 fi
 echo "########## Mounting $image"
 sudo mount -o loop $image $mountPoint
 
 echo "########## Installing base system"
-sudo debootstrap --include=$packages $debianVersion $mountPoint $debianFTP >/dev/null
+sudo debootstrap --include=$packages $debianVersion $mountPoint $debianFTP
 
 echo "########## Configuring base system"
 # hostname
@@ -217,8 +236,6 @@ do
 done
 
 # /etc/network/interfaces
-address=20
-
 sudo bash -c "echo \"# Used by ifup(8) and ifdown(8). See the interfaces(5) manpage or
 # /usr/share/doc/ifupdown/examples for more information.
 
@@ -227,9 +244,27 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet static
-        address 192.168.100.$address
+        address 192.168.1.20
         netmask 255.255.255.0
         broadcast 192.168.100.255
+
+auto eth1
+iface eth1 inet static
+        address 192.168.2.21
+        netmask 255.255.255.0
+        broadcast 192.168.101.255
+
+auto eth2
+iface eth2 inet static
+        address 192.168.2.22
+        netmask 255.255.255.0
+        broadcast 192.168.102.255
+
+auto eth3
+iface eth3 inet static
+        address 192.168.2.23
+        netmask 255.255.255.0
+        broadcast 192.168.103.255
         \" > $mountPoint/etc/network/interfaces"
 
 
@@ -246,8 +281,8 @@ none        /mnt/host-tmp   hostfs  defaults,/tmp   0       0
 
 # /etc/hosts
 sudo bash -c "echo \"127.0.0.1    localhost
-192.168.100.20    client
-192.168.100.10    server\" > $mountPoint/etc/hosts"
+192.168.1.20    client
+192.168.1.10    server\" > $mountPoint/etc/hosts"
 
 # /root/bashrc
 sudo bash -c "echo PATH=\\\$PATH:/mnt/host-tmp >> $mountPoint/root/.bashrc"
@@ -290,10 +325,10 @@ echo "########## $name image succesfully generated"
 # Now, generate de server image
 
 name=server
-packages=ssh,less,udev,tshark,tcpdump,udhcpd,psmisc
+packages=ssh,less,udev,tshark,tcpdump,psmisc
 numEths=4 # Number of ethernet cards on the server, not counting eth0
 
-image=$PWD/$name.rootfs
+image=${rootfs_install_dir}/$name.rootfs
 
 ## umount the image from previous invocations
 mount 2>/dev/null | grep -e "^$image .*$" >/dev/null
@@ -319,7 +354,7 @@ echo Mounting server.rootfs
 sudo mount -o loop $image $mountPoint
 
 echo Installing base system.
-sudo debootstrap --include=$packages $debianVersion $mountPoint $debianFTP >/dev/null
+sudo debootstrap --include=$packages $debianVersion $mountPoint $debianFTP
 
 echo Configuring base system.
 # hostname
@@ -355,21 +390,28 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet static
-        address 192.168.100.$address
+        address 192.168.1.10
+        netmask 255.255.255.0
+        broadcast 192.168.100.255
+
+auto eth1
+iface eth1 inet static
+        address 192.168.2.11
+        netmask 255.255.255.0
+        broadcast 192.168.100.255
+
+auto eth2
+iface eth2 inet static
+        address 192.168.2.12
+        netmask 255.255.255.0
+        broadcast 192.168.100.255
+
+auto eth3
+iface eth3 inet static
+        address 192.168.2.13
         netmask 255.255.255.0
         broadcast 192.168.100.255
         \" > $mountPoint/etc/network/interfaces"
-
-for i in `seq 1 $numEths`
-do
-    sudo bash -c "echo \"auto eth$i
-    iface eth$i inet static
-            address 192.168.200.$(($address + $i))
-            netmask 255.255.255.0
-            broadcast 192.168.200.255
-            \" >> $mountPoint/etc/network/interfaces"
-done
-
 
 # /etc/fstab
 sudo mkdir $mountPoint/mnt/host
@@ -383,32 +425,17 @@ none        /dev/shm        tmpfs   defaults        0       0
 
 # /etc/hosts
 sudo bash -c "echo \"127.0.0.1    localhost
-192.168.100.20    client
-192.168.100.10    server\" > $mountPoint/etc/hosts"
 
-# /etc/udhcpd.conf
-sudo bash -c "echo \"start 192.168.200.21
-end   192.168.200.50
-interface       eth1
-max_leases      29
-remaining       yes
-auto_time       7200 #(2 hours)
-decline_time    3600 #(1 hour)
-conflict_time   3600 #(1 hour)
-offer_time      60 #(1 minute)
-min_lease       60
-lease_file      /var/lib/misc/udhcpd.leases
-pidfile /var/run/udhcpd.pid
-notify_file     dumpleases
-#siaddr         192.168.0.22
-#sname          zorak
-#boot_file      /var/nfs_root
-#opt     dns     192.168.200.2 192.168.10.100
-option  subnet  255.255.255.0
-opt     router  192.168.200.11
-option  domain  local
-option  lease   864000          # 10 days of seconds\" > $mountPoint/etc/udhcpd.conf"
-sudo cp $mountPoint/etc/udhcpd.conf $mountPoint/etc/udhcpd.conf.original
+192.168.1.20    client
+192.168.2.21    client1
+192.168.2.22    client2
+192.168.2.23    client3
+
+192.168.1.10    server
+192.168.2.11    server1
+192.168.2.12    server2
+192.168.2.13    server3
+\" > $mountPoint/etc/hosts"
 
 # Root password
 #echo Setting \"root\" as the root password for $name 
@@ -438,8 +465,7 @@ sudo rmdir $mountPoint
 
 echo "########## Adding server host rsa pub key to client known hosts"
 name=client
-PWD=`pwd`
-image=`find $PWD -name $name.rootfs`
+image=${rootfs_install_dir}/$name.rootfs
 mountPoint=/mnt/$name
 if [ ! -e $mountPoint ]
 then

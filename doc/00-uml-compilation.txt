@@ -4,11 +4,11 @@ The followin steps will compile a 2.6.26.1 UML kernel:
 
 #####################################################################################
 ; # install some required packages:
-; sudo aptitude install binutils bzip2 libc-dev gcc make ncurses-dev kernel-package libqt3-mt-dev
+; sudo aptitude install binutils bzip2 libc-dev gcc make ncurses-dev kernel-package libqt3-mt-dev wish tk8.3 fakeroot build-essential wget gpg
 
 ; # define some useful variables
-; export WORKDIR=~/local/linux-src
-; export LINUXVER=2.6.29
+; WORKDIR=~/local/linux-src
+; LINUXVER=2.6.28.8
 
 ; # prepare the working directory
 ; mkdir -p ${WORKDIR}
