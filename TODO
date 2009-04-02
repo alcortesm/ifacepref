@@ -1,3 +1,6 @@
 doc/01-uml-rootfs-creation.txt
     - explain in plain english
     - adapt the script
+
+doc/git.howto
+    - translate to english

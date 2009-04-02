@@ -1,0 +1,85 @@
+Para más información:
+  http://git-scm.com/
+
+El repositorio principal está en:
+  ssh://violin.it.uc3m.es/users/prof/alcortes/open/ifacepref
+
+Y solo puede ser modificado por Alberto, por lo que los cambios
+se le deben mandar por email usando git-format-patch a:
+  alcortes@it.uc3m.es
+
+Alberto procesará los cambios y hará merge de ellos si no
+detecta problemas.
+
+La versión de git utilizada en el repositorio es:
+  alcortes@armonium; git --version
+  git version 1.6.1.2
+Aunque debería ser compatible con cualquier otra.
+
+
+
+Si quieres empezar a trabajar con la última versión del repositorio
+principal:
+
+ ; cd ~/tmp
+ ; git clone ssh://violin.it.uc3m.es/users/prof/alcortes/open/ifacepref
+ ; cd dhcplab
+ ; # trabajo
+ ; # commit
+ ; # trabajo
+ ; # commit
+ ; # trabajo
+ ; # commit
+ ...
+
+
+
+
+
+Si quieres mandar los últimos cambios al repositorio principal, genera
+un patch y mándalo por email a Alberto:
+
+ ; git format-patch origin
+ ; # mandar los ficheros generados a Alberto por email (alcortes@it.uc3m.es)
+ ; # o usar directamente git-send-email
+
+
+
+
+
+
+Para que Alberto añada los cambios en el repositorio principal:
+
+ ; cd
+ ; mount-open
+ ; cd ~/open/ifacepref
+
+ # añadimos un nuevo "remote" y nos bajamos los cambios
+ ; git remote add raven file:///home/alcortes/local/working/ifacepref/
+ ; git fetch raven
+
+ # observamos los cambios
+ ; git log raven/master ^master
+
+ # cuando estamos contentos con los cambios hacemos merge
+ ; git checkout master
+ ; git merge raven/master
+
+ # borramos el remote
+ ; git remote rm raven
+
+ ; cd
+ ; unmount-open
+
+
+
+Si queremos crear una nueva branch para los cambios remotos:
+
+ ; # después del fetch
+ ; git checkout -b raven-fix raven/master
+
+ ; # el merge lo podemos hacer sobre ella
+ ; git merge raven-fix
+
+ ; # si queremos borrarla luego
+ ; git branch -d raven-fix
