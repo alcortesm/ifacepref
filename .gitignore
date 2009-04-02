@@ -1,0 +1,14 @@
+# ignore module compilation subproducts
+src/.ifacepref.ko.cmd
+src/facepref.ko.cmd
+src/.ifacepref.mod.o.cmd
+src/.ifacepref.o.cmd
+src/.tmp_versions/
+src/.tmp_versions/ifacepref.mod
+src/Module.symvers
+src/ifacepref.c
+src/ifacepref.ko
+src/ifacepref.mod.c
+src/ifacepref.mod.o
+src/ifacepref.o
+src/modules.order
