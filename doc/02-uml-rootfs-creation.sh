@@ -57,11 +57,12 @@
 
 # CONFIGURE THIS
 
+umlversion=2.6.28.8
 debianVersion=lenny
 rootfsSize=450 # in MB
 timezone=Europe/Madrid
-umlPath=~/local/linux-src/linux-2.6.29/linux
-umlModulesPath=~/local/linux-src/linux-2.6.29/modules/lib/modules
+umlPath=~/local/linux-src/linux-${umlversion}/linux
+umlModulesPath=~/local/linux-src/linux-${umlversion}/modules/lib/modules
 rootfs_install_dir=~/local/uml-rootfs/ifacepref
 launchscript_file=~/bin/uml-ifacepref
 mkdir -p ${rootfs_install_dir}
@@ -265,6 +266,12 @@ iface eth3 inet static
         address 192.168.2.23
         netmask 255.255.255.0
         broadcast 192.168.103.255
+
+auto eth4
+iface eth4 inet static
+        address 192.168.2.24
+        netmask 255.255.255.0
+        broadcast 192.168.103.255
         \" > $mountPoint/etc/network/interfaces"
 
 
@@ -281,8 +288,18 @@ none        /mnt/host-tmp   hostfs  defaults,/tmp   0       0
 
 # /etc/hosts
 sudo bash -c "echo \"127.0.0.1    localhost
+
 192.168.1.20    client
-192.168.1.10    server\" > $mountPoint/etc/hosts"
+192.168.2.21    client1
+192.168.2.22    client2
+192.168.2.23    client3
+192.168.2.24    client4
+
+192.168.1.10    server
+192.168.2.11    server1
+192.168.2.12    server2
+192.168.2.13    server3
+192.168.2.14    server4\" > $mountPoint/etc/hosts"
 
 # /root/bashrc
 sudo bash -c "echo PATH=\\\$PATH:/mnt/host-tmp >> $mountPoint/root/.bashrc"
@@ -411,6 +428,12 @@ iface eth3 inet static
         address 192.168.2.13
         netmask 255.255.255.0
         broadcast 192.168.100.255
+
+auto eth4
+iface eth4 inet static
+        address 192.168.2.14
+        netmask 255.255.255.0
+        broadcast 192.168.100.255
         \" > $mountPoint/etc/network/interfaces"
 
 # /etc/fstab
@@ -430,12 +453,13 @@ sudo bash -c "echo \"127.0.0.1    localhost
 192.168.2.21    client1
 192.168.2.22    client2
 192.168.2.23    client3
+192.168.2.24    client4
 
 192.168.1.10    server
 192.168.2.11    server1
 192.168.2.12    server2
 192.168.2.13    server3
-\" > $mountPoint/etc/hosts"
+192.168.2.14    server4\" > $mountPoint/etc/hosts"
 
 # Root password
 #echo Setting \"root\" as the root password for $name 
