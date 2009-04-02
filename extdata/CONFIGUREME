@@ -1,0 +1,9 @@
+# All the external data will go under a single directory.
+# I suggest to keep this directory safe, as the full
+# proccess of getting all the data can take hours depending
+# on your internet connection and CPU power.
+EXTDATADIR=${HOME}/local/ifacepref-extdata
+
+# You should chose a linux version to work with, I suggest
+# the last stable vanilla version.
+KERNELVERSION=2.6.29
