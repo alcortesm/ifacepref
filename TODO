@@ -1,10 +1,2 @@
-doc/01-uml-rootfs-creation.txt
-    - explain in plain english
-    - adapt the script
-
 doc/git.howto
     - translate to english
-
-extdata/02-debian-partial-mirror.sh
-    - finish it
-    - finish the 03-create-uml-rootfs.sh
