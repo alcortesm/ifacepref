@@ -12,7 +12,10 @@ ifneq ($(KERNELRELEASE),)
 # line; invoke the kernel build system.
 else
 
-    KERNELDIR ?= $(HOME)/local/ifacepref-extdata/linux-src/linux-2.6.26/modules/lib/modules/2.6.26/build
+    extdatadir := $(shell cat ../extdata/CONFIGUREME | grep EXTDATADIR | cut -d'=' -f2)
+    kernelversion := $(shell cat ../extdata/CONFIGUREME | grep KERNELVERSION | cut -d'=' -f2)
+    modulesdir := $(extdatadir)/linux-src/linux-$(kernelversion)/modules/lib/modules/$(kernelversion)/build
+    KERNELDIR ?= $(modulesdir)
     PWD := $(shell pwd)
 
 default:
