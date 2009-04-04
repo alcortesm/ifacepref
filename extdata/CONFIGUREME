@@ -6,4 +6,4 @@ EXTDATADIR=${HOME}/local/ifacepref-extdata
 
 # You should chose a linux version to work with, I suggest
 # the last stable vanilla version.
-KERNELVERSION=2.6.29
+KERNELVERSION=2.6.26

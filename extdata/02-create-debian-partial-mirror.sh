@@ -27,6 +27,11 @@ RM="/bin/rm"
 [ -r ${RM} ] ; fatal "${RM}: read permission denied"
 [ -x ${RM} ] ; fatal "${RM}: exec permission denied"
 
+CAT="/bin/cat"
+[ -f ${CAT} ] ; fatal "${CAT}: file not found"
+[ -r ${CAT} ] ; fatal "${CAT}: read permission denied"
+[ -x ${CAT} ] ; fatal "${CAT}: exec permission denied"
+
 APTMOVE="/usr/bin/apt-move"
 [ -f ${APTMOVE} ] ; fatal "${APTMOVE}: file not found"
 [ -r ${APTMOVE} ] ; fatal "${APTMOVE}: read permission denied"
@@ -81,9 +86,10 @@ ${DEBOOTSTRAP} --download-only --include=${INCLUDE} ${DISTRO} ${DEBSDIR} http://
 
 # generate the apt-move configuration file on tmpdir
 CONFFILE=${TMPDIR}/apt-move.conf
-echo "#  Configuration file for the apt-move script.
+${CAT} > ${CONFFILE} << __END
+#  Configuration file for the apt-move script.
 # See the apt-move(8) manpage for information about these settings.
-APTSITES="'"'"/all/"'"'"
+APTSITES="/all/"
 LOCALDIR=${REPODIR}
 DIST=${DISTRO}
 PKGTYPE=binary
@@ -94,7 +100,8 @@ MAXDELETE=20
 COPYONLY=yes
 PKGCOMP=gzip
 CONTENTS=yes
-GPGKEY=" > ${CONFFILE}
+GPGKEY=
+__END
 
 # Update the local index 
 ${APTMOVE} -c ${CONFFILE} get

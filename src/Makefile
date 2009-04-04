@@ -12,7 +12,7 @@ ifneq ($(KERNELRELEASE),)
 # line; invoke the kernel build system.
 else
 
-    KERNELDIR ?= $(HOME)/local/linux-src/linux-2.6.28.8/modules/lib/modules/2.6.28.8/build
+    KERNELDIR ?= $(HOME)/local/ifacepref-extdata/linux-src/linux-2.6.26/modules/lib/modules/2.6.26/build
     PWD := $(shell pwd)
 
 default:
