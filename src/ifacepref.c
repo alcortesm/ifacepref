@@ -3,7 +3,7 @@
 #include <linux/fs.h>
 
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.1");
+MODULE_VERSION("0.2");
 
 const char * const NAME="ifacepref";
 const unsigned int DEV_COUNT = 1;
