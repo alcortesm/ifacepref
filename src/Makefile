@@ -14,8 +14,8 @@ ifneq ($(KERNELRELEASE),)
 # line; invoke the kernel build system.
 else
 
-    extdatadir := $(shell cat ../CONFIGUREME | grep EXTDATADIR | cut -d'=' -f2)
-    kernelversion := $(shell cat ../CONFIGUREME | grep KERNELVERSION | cut -d'=' -f2)
+    extdatadir := $(shell cat ../CONFIGUREME | egrep -v '^\#.*$$' | grep EXTDATADIR | cut -d'=' -f2)
+    kernelversion := $(shell cat ../CONFIGUREME | egrep -v '^\#.*$$' | grep KERNELVERSION | cut -d'=' -f2)
     modulesdir := $(extdatadir)/linux-src/linux-$(kernelversion)/modules/lib/modules/$(kernelversion)/build
     KERNELDIR ?= $(modulesdir)
     PWD := $(shell pwd)
@@ -24,7 +24,7 @@ default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um modules
 
 clean:
-	make -C $(KERNELDIR) M=$(PWD) ARCH=um clean
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um clean
 	- rm -f modules.order
 
 endif

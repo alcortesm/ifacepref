@@ -10,7 +10,7 @@ EXTDATADIR=${HOME}/local/ifacepref-extdata
 # the last stable vanilla version.
 # If unsure choose some recent 2.6 version:
 # KERNEL_VERSION=2.6.26
-KERNELVERSION=2.6.26
+KERNELVERSION=2.6.29.1
 
 # Debian version of the uml image
 # If unsure choose the most recent Debian version:
