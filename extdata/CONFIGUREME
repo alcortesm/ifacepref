@@ -7,3 +7,9 @@ EXTDATADIR=${HOME}/local/ifacepref-extdata
 # You should chose a linux version to work with, I suggest
 # the last stable vanilla version.
 KERNELVERSION=2.6.26
+
+# Debian version of the uml image
+DISTRO=lenny
+
+# Some important packages you will need in your uml image
+INCLUDE=ssh,less,valgrind,udev,tshark,tcpdump,psmisc,gcc,gdb,strace

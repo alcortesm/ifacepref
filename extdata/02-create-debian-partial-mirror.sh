@@ -1,9 +1,5 @@
 #!/bin/bash
 
-INCLUDE=ssh,less,valgrind,udev,tshark,tcpdump,psmisc
-DISTRO=lenny
-
-
 function fatal {
     if [ ! $? -eq 0 ]
     then

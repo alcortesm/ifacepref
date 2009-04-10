@@ -104,7 +104,7 @@ ${MKDIR} -p ${DESTDIR} ; fatal "can not create ${DESTDIR}"
 [ -w ${DESTDIR} ] ; fatal "${DESTDIR}: write permission denied"
 [ -x ${DESTDIR} ] ; fatal "${DESTDIR}: exec permission denied"
 
-debianVersion=lenny
+debianVersion=$DISTRO
 rootfsSize=450 # in MB
 timezone=Europe/Madrid
 umlPath=${EXTDATADIR}/linux-src/linux-${KERNELVERSION}/linux
@@ -224,7 +224,7 @@ echo "########## ${launchScriptFile} script succesfully generated"
 # Generate the client image (client.rootfs)
 
 name=client
-packages=ssh,less,valgrind,udev,tshark,tcpdump,psmisc
+packages=$INCLUDE
 image=${DESTDIR}/$name.rootfs
 
 echo "########## Refreshing sudo passwd"
