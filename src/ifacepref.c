@@ -7,15 +7,15 @@ MODULE_VERSION("0.2");
 
 const char * const NAME="ifacepref";
 const unsigned int DEV_COUNT = 1;
-const int MAJOR = 0; /* 0 means dynamic allocation */
-const int MINOR = 0;
+const unsigned int MAJOR = 0; /* 0 means dynamic allocation */
+const unsigned int MINOR = 0;
 dev_t dev;
 
 static int
 ifacepref_init(void)
 {
     int error;
-    int major;
+    unsigned int major;
     
     printk(KERN_ALERT "IFACEPREF ifacepref_init() entering\n");
 
@@ -29,7 +29,7 @@ ifacepref_init(void)
     }
     if (error)
         return -1;
-    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%d and minor=%d\n",
+    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%ud and minor=%ud\n",
             MAJOR(dev), MINOR(dev));
 
     printk(KERN_ALERT "IFACEPREF ifacepref_init() leaving\n");
@@ -42,7 +42,7 @@ static void ifacepref_exit(void)
 
     /* free allocated device numbers */
     unregister_chrdev_region(dev, DEV_COUNT); 
-    printk(KERN_ALERT "IFACEPREF ifacepref_exit() unregister major=%d and minor=%d\n",
+    printk(KERN_ALERT "IFACEPREF ifacepref_exit() unregister major=%ud and minor=%ud\n",
             MAJOR(dev), MINOR(dev));
 
     printk(KERN_ALERT "IFACEPREF ifacepref_exit() leaving\n");
