@@ -45,7 +45,7 @@ ifacepref_init(void)
     }
     if (err)
         return -1;
-    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%u, minor=%u\n, count=%u\n",
+    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%u, minor=%u, count=%u\n",
             MAJOR(devnum), MINOR(devnum), DEV_COUNT);
 
     /* char device registration */
