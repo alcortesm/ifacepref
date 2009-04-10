@@ -15,8 +15,16 @@ dev_t devnum;
 
 struct cdev * cdevp;
 
+int ifacepref_open(struct inode *inodep, struct file * filp);
+int ifacepref_release(struct inode *inodep, struct file * filp);
+ssize_t ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp);
+ssize_t ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp);
 struct file_operations fops = {
     .owner = THIS_MODULE,
+    .open = ifacepref_open,
+    .release = ifacepref_release,
+    .read = ifacepref_read,
+    .write = ifacepref_write,
 };
 
 static int
@@ -61,7 +69,8 @@ ifacepref_init(void)
     return 0;
 }
 
-static void ifacepref_exit(void)
+static void
+ifacepref_exit(void)
 {
     printk(KERN_ALERT "IFACEPREF ifacepref_exit() entering\n");
 
@@ -77,6 +86,38 @@ static void ifacepref_exit(void)
     printk(KERN_ALERT "done\n");
 
     printk(KERN_ALERT "IFACEPREF ifacepref_exit() leaving\n");
+}
+
+int
+ifacepref_open(struct inode *inodep, struct file * filp)
+{
+    printk(KERN_ALERT "IFACEPREF ifacepref_open() entering\n");
+    printk(KERN_ALERT "IFACEPREF ifacepref_open() leaving\n");
+    return 0;
+}
+
+int
+ifacepref_release(struct inode *inodep, struct file * filp)
+{
+    printk(KERN_ALERT "IFACEPREF ifacepref_release() entering\n");
+    printk(KERN_ALERT "IFACEPREF ifacepref_release() leaving\n");
+    return 0;
+}
+
+ssize_t
+ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp)
+{
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() entering\n");
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() leaving\n");
+    return -1;
+}
+
+ssize_t
+ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp)
+{
+    printk(KERN_ALERT "IFACEPREF ifacepref_write() entering\n");
+    printk(KERN_ALERT "IFACEPREF ifacepref_write() leaving\n");
+    return -1;
 }
 
 module_init(ifacepref_init);
