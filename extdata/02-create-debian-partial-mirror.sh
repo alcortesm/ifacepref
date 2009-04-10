@@ -8,7 +8,7 @@ function fatal {
     fi
 }
 
-CONF="./CONFIGUREME"
+CONF="../CONFIGUREME"
 [ -f ${CONF} ] ; fatal "${CONF}: file not found"
 [ -r ${CONF} ] ; fatal "${CONF}: read permission denied"
 
