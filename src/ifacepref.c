@@ -29,7 +29,7 @@ ifacepref_init(void)
     }
     if (error)
         return -1;
-    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%ud and minor=%ud\n",
+    printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%u and minor=%u\n",
             MAJOR(dev), MINOR(dev));
 
     printk(KERN_ALERT "IFACEPREF ifacepref_init() leaving\n");
@@ -42,7 +42,7 @@ static void ifacepref_exit(void)
 
     /* free allocated device numbers */
     unregister_chrdev_region(dev, DEV_COUNT); 
-    printk(KERN_ALERT "IFACEPREF ifacepref_exit() unregister major=%ud and minor=%ud\n",
+    printk(KERN_ALERT "IFACEPREF ifacepref_exit() unregister major=%u and minor=%u\n",
             MAJOR(dev), MINOR(dev));
 
     printk(KERN_ALERT "IFACEPREF ifacepref_exit() leaving\n");
