@@ -1,3 +1,6 @@
+# ignore vim swap files
+*swp
+
 # ignore module compilation subproducts
 src/.ifacepref.ko.cmd
 src/.ifacepref.mod.o.cmd

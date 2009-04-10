@@ -1,7 +1,9 @@
 .PHONY: install default clean
 
 install: default
-	cp ifacepref.ko /tmp/
+	cp ifacepref.ko   /tmp/
+	cp ifacepref_load /tmp/
+	cp ifacepref_unload /tmp/
 
 # If KERNELRELEASE is defined, we've been invoked from the
 # kernel build system and can use its language.

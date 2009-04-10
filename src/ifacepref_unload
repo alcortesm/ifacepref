@@ -1,0 +1,9 @@
+#!/bin/sh
+
+module="ifacepref"
+device="ifacepref"
+
+# remove stale nodes
+rm -f /dev/${device}?
+
+/sbin/rmmod $module
