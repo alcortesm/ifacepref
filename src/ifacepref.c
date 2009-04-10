@@ -30,7 +30,7 @@ struct file_operations fops = {
 static int
 ifacepref_init(void)
 {
-    int error;
+    int err;
     unsigned int major;
     
     printk(KERN_ALERT "IFACEPREF ifacepref_init() entering\n");
@@ -38,12 +38,12 @@ ifacepref_init(void)
     /* major number allocation */
     major = MAJOR;
     if (!major)
-        error = alloc_chrdev_region(&devnum, MINOR, DEV_COUNT, NAME);
+        err = alloc_chrdev_region(&devnum, MINOR, DEV_COUNT, NAME);
     else {
         devnum = MKDEV(major, MINOR);
-        error = register_chrdev_region(devnum, DEV_COUNT, NAME);
+        err = register_chrdev_region(devnum, DEV_COUNT, NAME);
     }
-    if (error)
+    if (err)
         return -1;
     printk(KERN_ALERT "IFACEPREF ifacepref_init() registered at major=%u, minor=%u\n, count=%u\n",
             MAJOR(devnum), MINOR(devnum), DEV_COUNT);
@@ -52,9 +52,9 @@ ifacepref_init(void)
     cdevp = cdev_alloc();
     cdevp->ops = &fops;
     cdevp->owner = THIS_MODULE;
-    error = cdev_add(cdevp, devnum, DEV_COUNT);
-    if (error) {
-        printk(KERN_ALERT "IFACEPREF ifacepref_init() error adding char device to major=%u, minor=%u, count=%u\n",
+    err = cdev_add(cdevp, devnum, DEV_COUNT);
+    if (err) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_init() err adding char device to major=%u, minor=%u, count=%u\n",
                 MAJOR(devnum), MINOR(devnum), DEV_COUNT);
         unregister_chrdev_region(devnum, DEV_COUNT);
         printk(KERN_ALERT "IFACEPREF ifacepref_init() unregister major=%u, minor=%u, count=%u\n",
