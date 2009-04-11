@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/cdev.h>
+#include <linux/if.h>
 
 MODULE_LICENSE("GPL");
 MODULE_VERSION("0.2");
@@ -10,6 +11,8 @@ const char * const NAME="ifacepref";
 const unsigned int DEV_COUNT = 1;
 const unsigned int MAJOR = 0; /* 0 means dynamic allocation */
 const unsigned int MINOR = 0;
+
+char data[IFNAMSIZ];
 
 dev_t devnum;
 
@@ -32,8 +35,13 @@ ifacepref_init(void)
 {
     int err;
     unsigned int major;
+    int i;
     
     printk(KERN_ALERT "IFACEPREF ifacepref_init() entering\n");
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_open() initializing ifacepref to empty string\n");
+    for (i=0; i<IFNAMSIZ; i++)
+        data[i] = '\0';
 
     /* major number allocation */
     major = MAJOR;
@@ -107,17 +115,96 @@ ifacepref_release(struct inode *inodep, struct file * filp)
 ssize_t
 ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp)
 {
-    printk(KERN_ALERT "IFACEPREF ifacepref_read() entering\n");
-    printk(KERN_ALERT "IFACEPREF ifacepref_read() leaving\n");
-    return -1;
+    int i;
+    int datasz;
+    int pending;
+    int found;
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() entering count=%u, offset=%llu\n",
+            count, *offp);
+
+    /* get data size */
+    
+    /* search for \0 */
+    found = 0;
+    for (i=0; i<IFNAMSIZ; i++) {
+        if (data[i] == '\0') {
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_read() ERROR no \\0 found on data\n");
+        return -1;
+    }
+    datasz = i + 1;
+
+    /* check for out of bounds offset and count */
+    if (*offp >= datasz) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_read() offset bigger than data size -> EOF; leaving with 0\n");
+        return 0;
+    }
+    /* don't return more data than available or asked */
+    if (*offp + count > datasz)
+        count = datasz - *offp;
+
+    pending = copy_to_user(buff, (const void *)(data + *offp), count);
+    if (pending) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_read() ERROR not valid user-space pointer\n");
+        return -EFAULT;
+    }
+    *offp += count;
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() %u bytes of data copied to user-space\n",
+            count);
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() leaving with %u\n", count);
+    return count;
 }
 
 ssize_t
 ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp)
 {
-    printk(KERN_ALERT "IFACEPREF ifacepref_write() entering\n");
-    printk(KERN_ALERT "IFACEPREF ifacepref_write() leaving\n");
-    return -1;
+    int pending;
+    int datasz;
+    int i;
+    int found;
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_write() entering count=%u, offset=%llu\n",
+            count, *offp);
+    
+    /* get data size */
+    found = 0;
+    for (i=0; i<IFNAMSIZ; i++) {
+        if (data[i] == '\0') {
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR no \\0 found on data\n");
+        return -1;
+    }
+    datasz = i + 1;
+
+    /* check for out of bounds offset and count */
+    if (*offp >= IFNAMSIZ)
+        return -EFBIG;
+    /* don't write more data than fits */
+    if (*offp + count >= IFNAMSIZ)
+        count = IFNAMSIZ - *offp;
+
+    pending = copy_from_user(data+*offp, buff, count);
+    if (pending) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR not valid user-space pointer\n");
+        return -EFAULT;
+    }
+    printk(KERN_ALERT "IFACEPREF ifacepref_write() %u bytes of data copied from user-space\n",
+            count);
+    *offp += count;
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_write() leaving with %u\n",
+            count);
+    return count;
 }
 
 module_init(ifacepref_init);
