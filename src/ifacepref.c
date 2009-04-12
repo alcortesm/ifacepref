@@ -5,7 +5,7 @@
 #include <linux/if.h>
 
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.2");
+MODULE_VERSION("0.3");
 
 const char * const NAME="ifacepref";
 const unsigned int DEV_COUNT = 1;
