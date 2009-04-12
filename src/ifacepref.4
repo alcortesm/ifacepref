@@ -1,9 +1,14 @@
 .\" nroff source of ifacepref manpage
 .\" alcortes@it.uc3m.es 2009-04-12
 .\"
+.\" groff -man ifacepref.4 | col -b > ifacepref_manpage.txt
+.\" groff -man -Tps ifacepref.4 > ifacepref_manpage.ps
+.\" groff -man -Tps ifacepref.4 | ps2pdf - - > ifacepref_manpage.pdf
+.\" groff -man -Thtml ifacepref.4 > ifacepref_manpage.html
+.\"
 .TH IFACEPREF 4 2009-04-12 "Linux" "Linux Programmer's Manual"
 .SH NAME
-ifacepref \- preferred network interface device
+\fBifacepref\fP \- preferred network interface device
 .SH DESCRIPTION
 The character special file \fI/dev/ifacepref\fP provide
 an interface to set and get the preferred network interface
@@ -19,21 +24,21 @@ Writting the name of the preferred iface to \fI/dev/ifacepref\fP
 will make the device remember it. It can be changed afterwards by
 aditional writes.
 .LP
-Network interface names are no longer than IFNAMSIZ. Any attemp to
-write more than IFNAMSIZ bytes in the device will fail.
+Network interface names are no longer than \fBIFNAMSIZ\fP bytes. Any attempt to
+write more than \fBIFNAMSIZ\fP bytes in the device will fail.
 .LP
-Write operations are atomic: You must invoke them in a single go.
-The stored iface name will be the whole data provided in the single
-write operation. Any attemp to write at a non-zero offset
+Write operations are atomic: each write system call will set a
+new preferred iface; don't try to splice a write between severall
+system calls as any attempt to write at a non-zero offset
 will fail.
 .LP
-Read operations need not to be atomic. But as interface names are quite
+Read operations don't need to be atomic. But as interface names are quite
 small (16 bytes for most kernels), it is easy to read the whole device
 in only one go.
 .SS Configuration
 If your system does not have
 \fI/dev/ifacepref\fP created already, you will
-have to create it by hand. They can be created with the following commands.
+have to create it by hand. It can be created with the following commands.
 Major and minor numbers are dynamically
 assigned by default when the module is loaded so you will need to
 use \fBlsmod\fP to ask the system about them:
@@ -61,19 +66,18 @@ To get the preferred interface:
 
 .nf
     ; cat /dev/ifacepref
-    eth0;
 .fi
 
 .SH FILES
-/dev/ifacepref
+.I /dev/ifacepref
 .SH BUGS
 There are race conditions on concurrent writes.
 .LP
-The module is to verbose.
+Module execution is too verbose.
 .LP
 The iface name is not checked for existance.
 .SH AUTHOR
 The kernel's ifacepref device was written by
-Alberto Cortés (alcortes@it.uc3m.es).
+Alberto Cortes (alcortes@it.uc3m.es).
 .SH "SEE ALSO"
-netdevice(7), write(2), lsmod(8)
+\fBnetdevice\fP(7), \fBwrite\fP(2), \fBlsmod\fP(8)
