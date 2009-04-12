@@ -13,6 +13,8 @@ const unsigned int MAJOR = 0; /* 0 means dynamic allocation */
 const unsigned int MINOR = 0;
 
 char data[IFNAMSIZ];
+char * const data_end = data + IFNAMSIZ - 1 ;
+char * content_end;
 
 dev_t devnum;
 
@@ -42,6 +44,7 @@ ifacepref_init(void)
     printk(KERN_ALERT "IFACEPREF ifacepref_open() initializing ifacepref to empty string\n");
     for (i=0; i<IFNAMSIZ; i++)
         data[i] = '\0';
+    content_end =  data;
 
     /* major number allocation */
     major = MAJOR;
@@ -113,98 +116,98 @@ ifacepref_release(struct inode *inodep, struct file * filp)
 }
 
 ssize_t
-ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp)
+ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t *offp)
 {
-    int i;
-    int datasz;
+    const char * start;
+    const char * end;
+    size_t read_count;
     int pending;
-    int found;
 
     printk(KERN_ALERT "IFACEPREF ifacepref_read() entering count=%u, offset=%llu\n",
             count, *offp);
 
-    /* get data size */
-    
-    /* search for \0 */
-    found = 0;
-    for (i=0; i<IFNAMSIZ; i++) {
-        if (data[i] == '\0') {
-            found = 1;
-            break;
-        }
+    /* input sanity check */
+    if (*offp < 0) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_read() ERROR negative offset provided\n");
+        return -EINVAL;
     }
-    if (!found) {
-        printk(KERN_ALERT "IFACEPREF ifacepref_read() ERROR no \\0 found on data\n");
-        return -1;
-    }
-    datasz = i + 1;
 
-    /* check for out of bounds offset and count */
-    if (*offp >= datasz) {
-        printk(KERN_ALERT "IFACEPREF ifacepref_read() offset bigger than data size -> EOF; leaving with 0\n");
+    /* trivial invocation */
+    if (count == 0)
+        return 0;
+
+    /* calculate start and end of requested read region */
+    start = data + *offp;
+    end   = start + count - 1;
+
+    /* out of bound checks on read region */
+    if (start > content_end) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_read() offset bigger than content size -> EOF; leaving with 0\n");
         return 0;
     }
-    /* don't return more data than available or asked */
-    if (*offp + count > datasz)
-        count = datasz - *offp;
+    if (end > content_end)
+        end = content_end;
 
-    pending = copy_to_user(buff, (const void *)(data + *offp), count);
+    read_count = end - start + 1;
+
+    pending = copy_to_user(user_buff, (const void *)(start), read_count);
     if (pending) {
         printk(KERN_ALERT "IFACEPREF ifacepref_read() ERROR not valid user-space pointer\n");
         return -EFAULT;
     }
-    *offp += count;
-    printk(KERN_ALERT "IFACEPREF ifacepref_read() %u bytes of data copied to user-space\n",
-            count);
 
-    printk(KERN_ALERT "IFACEPREF ifacepref_read() leaving with %u\n", count);
-    return count;
+    *offp += read_count;
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() %u bytes of data copied to user-space\n",
+            read_count);
+
+    printk(KERN_ALERT "IFACEPREF ifacepref_read() leaving with %u\n", read_count);
+    return read_count;
 }
 
 ssize_t
-ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp)
+ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, loff_t *offp)
 {
+    char * start;
+    char * end;
+    size_t write_count;
     int pending;
-    int datasz;
-    int i;
-    int found;
 
     printk(KERN_ALERT "IFACEPREF ifacepref_write() entering count=%u, offset=%llu\n",
             count, *offp);
-    
-    /* get data size */
-    found = 0;
-    for (i=0; i<IFNAMSIZ; i++) {
-        if (data[i] == '\0') {
-            found = 1;
-            break;
-        }
-    }
-    if (!found) {
-        printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR no \\0 found on data\n");
-        return -1;
-    }
-    datasz = i + 1;
+   
+   /* input sanity checks */
+   if (*offp != 0) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR requested offset is not 0\n");
+        return -EINVAL;
+   }
 
-    /* check for out of bounds offset and count */
-    if (*offp >= IFNAMSIZ)
-        return -EFBIG;
-    /* don't write more data than fits */
-    if (*offp + count >= IFNAMSIZ)
-        count = IFNAMSIZ - *offp;
+   /* trivial invocation */
+   if (count == 0)
+       return 0;
 
-    pending = copy_from_user(data+*offp, buff, count);
+   /* calculate write region */
+   start = data;
+   end   = start + count - 1 ;
+
+   /* sanity checks on write region */
+   if (end > data_end)
+       end = data_end;
+
+    write_count = end - start + 1 ;
+    content_end = end;
+
+    pending = copy_from_user(start, user_buff, write_count);
     if (pending) {
         printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR not valid user-space pointer\n");
         return -EFAULT;
     }
     printk(KERN_ALERT "IFACEPREF ifacepref_write() %u bytes of data copied from user-space\n",
-            count);
-    *offp += count;
+            write_count);
 
+    *offp += write_count;
     printk(KERN_ALERT "IFACEPREF ifacepref_write() leaving with %u\n",
-            count);
-    return count;
+            write_count);
+    return write_count;
 }
 
 module_init(ifacepref_init);
