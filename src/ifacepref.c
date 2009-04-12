@@ -5,15 +5,15 @@
 #include <linux/if.h>
 
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.3");
+MODULE_VERSION("0.4");
 
 const char * const NAME="ifacepref";
 const unsigned int DEV_COUNT = 1;
 const unsigned int MAJOR = 0; /* 0 means dynamic allocation */
 const unsigned int MINOR = 0;
 
-char data[IFNAMSIZ];
-char * const data_end = data + IFNAMSIZ - 1 ;
+char buffer[IFNAMSIZ];
+char * const buffer_end = buffer + IFNAMSIZ - 1 ;
 char * content_end;
 
 dev_t devnum;
@@ -43,8 +43,8 @@ ifacepref_init(void)
 
     printk(KERN_ALERT "IFACEPREF ifacepref_open() initializing ifacepref to empty string\n");
     for (i=0; i<IFNAMSIZ; i++)
-        data[i] = '\0';
-    content_end =  data;
+        buffer[i] = '\0';
+    content_end =  buffer;
 
     /* major number allocation */
     major = MAJOR;
@@ -137,7 +137,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
         return 0;
 
     /* calculate start and end of requested read region */
-    start = data + *offp;
+    start = buffer + *offp;
     end   = start + count - 1;
 
     /* out of bound checks on read region */
@@ -186,11 +186,11 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
        return 0;
 
    /* calculate write region */
-   start = data;
+   start = buffer;
    end   = start + count - 1 ;
 
    /* sanity checks on write region */
-   if (end > data_end) {
+   if (end > buffer_end) {
         printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR requested offset is not 0\n");
         return -ENOSPC;
    }
