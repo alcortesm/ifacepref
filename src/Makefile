@@ -4,6 +4,8 @@ install: default
 	cp ifacepref.ko   /tmp/
 	cp ifacepref_load /tmp/
 	cp ifacepref_unload /tmp/
+	mkdir -p ${HOME}/man/man4/
+	cp ifacepref.4  ${HOME}/man/man4/
 
 # If KERNELRELEASE is defined, we've been invoked from the
 # kernel build system and can use its language.
