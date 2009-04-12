@@ -178,7 +178,7 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    /* input sanity checks */
    if (*offp != 0) {
         printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR requested offset is not 0\n");
-        return -EINVAL;
+        return -EFBIG;
    }
 
    /* trivial invocation */
@@ -190,8 +190,10 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    end   = start + count - 1 ;
 
    /* sanity checks on write region */
-   if (end > data_end)
-       end = data_end;
+   if (end > data_end) {
+        printk(KERN_ALERT "IFACEPREF ifacepref_write() ERROR requested offset is not 0\n");
+        return -ENOSPC;
+   }
 
     write_count = end - start + 1 ;
     content_end = end;
