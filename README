@@ -11,13 +11,10 @@ Ifacepref is a kernel module for 2.6 linux kernels.
     2. External data is needed to compile and test!
 
 That's right, you will need about 1,5 GB of external data to compile
-and test ifacepref the way I like. Of course none of these external
+and test ifacepref the way I do it. Of course none of these external
 data is included in this distribution. You will have to get it
-yourself.
-
-That way I keep this distribution small and avoid the inclusion of
-external software in the distribution and in my version control
-system.
+yourself. That way I keep this distribution small and avoid the
+inclusion of external software.
 
 
 
@@ -25,8 +22,8 @@ system.
 
 To compile the module you will need a full kernel source tree.
 
-To test the module the way I do, you will need an UML kernel and
-some root filesystems to boot it.
+To test the module the way I do it, you will need an UML kernel
+and some root filesystems to boot it.
 
 I have write some scripts to help you/me to get all these things.
 They are under the extdata/ directory. You will need to edit the
@@ -39,14 +36,33 @@ you will need to copy /usr/include/sys/user.h to
 
 
 
-    3. Compilation
+    3. Kernel tree compilation
 
 To compile a 2.6 linux kernel module you will need a compiled linux
 kernel source tree. I'm going to use UML as the compilation architecture
-as the testing and debugging of the kernel module is much safe and easier.
+as the testing and debugging of the kernel module is safer and easier.
 
 When configuring the kernel compilation remember to adapt it to your
-CPU and to include hostfs support.
+CPU and to include hostfs support. Also remember to include all the
+debugging options you need; some of the following wil be usefull:
+
+CONFIG_DEBUG_KERNEL
+CONFIG_DEBUG_SLAB
+CONFIG_DEBUG_PAGEALLOC
+CONFIG_DEBUG_SPINLOCK
+CONFIG_DEBUG_SPINLOCK_SLEEP
+CONFIG_INIT_DEBUG
+CONFIG_DEBUG_INFO
+CONFIG_MAGIC_SYSRQ
+CONFIG_DEBUG_STACKOVERFLOW
+CONFIG_DEBUG_STACK_USAGE
+CONFIG_KALLSYMS
+CONFIG_IKCONFIG
+CONFIG_IKCONFIG_PROC
+CONFIG_ACPI_DEBUG
+CONFIG_DEBUG_DRIVER
+CONFIG_SCSI_CONSTANTS
+CONFIG_PROFILING
 
 See doc/00-uml-compilation.txt for instructions about how to compile
 such a kernel. If you edit the CONFIGUREME file and used my extdata/
@@ -66,8 +82,8 @@ already create a working rootfs.
 
   4.2 Launch the rootfs
 
-Just launch it with the "run-uml.sh". There is only one user "root"
-with no passwd.
+Just launch it with the newly generated "rootfs/run-uml.sh". There is
+only one user "root" with no passwd.
 
 
   4.3 Test the module
@@ -77,4 +93,17 @@ You will find the module and the load and unload scripts at:
 /mnt/host-tmp/ifacepref.ko
 /mnt/host-tmp/ifacepref_load
 /mnt/host-tmp/ifacepref_unload
+
+Use one of the UML terminals to monitor kernels logs:
+
+; tail -f /var/log/kern.log | grep ifacepref
+
+Use the other terminal to play with the module:
+
+; cd /mnt/host-tmp
+; modinfo ifacepref.ko
+; ifacepref_load
+; echo -n "eth0" > /dev/ifacepref
+; cat /dev/ifacepref
+; ifacepref_unload
 
