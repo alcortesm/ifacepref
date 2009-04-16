@@ -1,3 +1,13 @@
+# Comment/uncomment to disable/enable debugging
+DEBUG = y
+
+ifeq ($(DEBUG),y)
+    DEBFLAGS = -O -g -DIFACEPREF_DEBUG # -0 is needed to expand inlines
+else
+    DEBFLAGS = -O2
+endif
+EXTRA_CFLAGS += $(DEBFLAGS)
+
 .PHONY: install default clean
 
 install: default
