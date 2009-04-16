@@ -41,8 +41,6 @@ ssize_t ifacepref_read(struct file * filp, char __user *buff, size_t count, loff
 ssize_t ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp);
 struct file_operations fops = {
     .owner = THIS_MODULE,
-    .open = ifacepref_open,
-    .release = ifacepref_release,
     .read = ifacepref_read,
     .write = ifacepref_write,
 };
@@ -112,22 +110,6 @@ ifacepref_exit(void)
     PDEBUG("done\n");
 
     PDEBUG("ifacepref_exit() leaving\n");
-}
-
-int
-ifacepref_open(struct inode *inodep, struct file * filp)
-{
-    PDEBUG("ifacepref_open() entering\n");
-    PDEBUG("ifacepref_open() leaving\n");
-    return 0;
-}
-
-int
-ifacepref_release(struct inode *inodep, struct file * filp)
-{
-    PDEBUG("ifacepref_release() entering\n");
-    PDEBUG("ifacepref_release() leaving\n");
-    return 0;
 }
 
 ssize_t
