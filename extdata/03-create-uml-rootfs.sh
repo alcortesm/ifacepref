@@ -205,7 +205,7 @@ RM="/bin/rm"
 
 #build the launch command
 command1="\${TERM} -bg black -fg white -e \${SWITCH} -hub -unix \${HUB1} &"
-command2="\${TERM} -bg black -fg white -e \${UML} mem=64M ubd0=\${CCOW},\${CLIENT} eth0=daemon,fe:fd:00:00:01:00,unix,\${HUB1} eth1=daemon,fe:fd:00:00:01:01,unix,\${HUB1} eth2=daemon,fe:fd:00:00:01:02,unix,\${HUB1} eth3=daemon,fe:fd:00:00:01:03,unix,\${HUB1} eth4=daemon,fe:fd:00:00:01:04,unix,\${HUB1} con=pty con0=fd:0,fd:1 con1=xterm xterm=\${UMLTERM},-T,-e umid=client &"
+command2="\${TERM} -bg black -fg white -e \${UML} mem=64M ubd0=\${CCOW},\${CLIENT} eth0=daemon,fe:fd:00:00:01:00,unix,\${HUB1} eth1=daemon,fe:fd:00:00:01:01,unix,\${HUB1} eth2=daemon,fe:fd:00:00:01:02,unix,\${HUB1} eth3=daemon,fe:fd:00:00:01:03,unix,\${HUB1} eth4=daemon,fe:fd:00:00:01:04,unix,\${HUB1} con=pty con0=fd:0,fd:1 con1=xterm con2=xterm xterm=\${UMLTERM},-T,-e umid=client &"
 
 # echo the commands we are going to run
 echo "\$command1"
