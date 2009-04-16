@@ -22,7 +22,7 @@ Si quieres empezar a trabajar con la última versión del repositorio
 principal:
 
  ; cd ~/tmp
- ; git clone ssh://violin.it.uc3m.es/users/prof/alcortes/open/ifacepref
+ ; git clone ssh://violin.it.uc3m.es/users/prof/alcortes/git-repos/ifacepref
  ; cd ifacepref
  ; # edito fuentes
  ; # pruebo
@@ -51,11 +51,11 @@ un patch y mándalo por email a Alberto:
 Para que Alberto añada los cambios en el repositorio principal:
 
  ; cd
- ; mount-open
- ; cd ~/open/ifacepref
+ ; mount-git-repos
+ ; cd ~/mnt/git-repos/ifacepref
 
  # añadimos un nuevo "remote" y nos bajamos los cambios
- ; git remote add raven file:///home/alcortes/local/git-cache/ifacepref/
+ # git remote add raven file:///home/alcortes/local/git-cache/ifacepref/
  ; git fetch raven
 
  # observamos los cambios
@@ -66,10 +66,10 @@ Para que Alberto añada los cambios en el repositorio principal:
  ; git merge raven/master
 
  # borramos el remote
- ; git remote rm raven
+ # git remote rm raven
 
  ; cd
- ; unmount-open
+ ; unmount-git-repos
 
 
 
