@@ -54,7 +54,7 @@ ifacepref_init(void)
     
     PDEBUG("ifacepref_init() entering\n");
 
-    PDEBUG("ifacepref_init() initializing ifacepref to empty string\n");
+    PDEBUG("ifacepref_init() cleaning buffer\n");
     for (i=0; i<IFNAMSIZ; i++)
         buffer[i] = '\0';
     content_end =  buffer;
@@ -78,7 +78,7 @@ ifacepref_init(void)
     cdevp->owner = THIS_MODULE;
     err = cdev_add(cdevp, devnum, DEV_COUNT);
     if (err) {
-        PDEBUG("ifacepref_init() err adding char device to major=%u, minor=%u, count=%u\n",
+        printk(KERN_ERR "ifacepref_init() err adding char device to major=%u, minor=%u, count=%u\n",
                 MAJOR(devnum), MINOR(devnum), DEV_COUNT);
         unregister_chrdev_region(devnum, DEV_COUNT);
         PDEBUG("ifacepref_init() unregister major=%u, minor=%u, count=%u\n",
@@ -88,7 +88,7 @@ ifacepref_init(void)
     PDEBUG("ifacepref_init() char device added to major=%u, minor=%u, count=%u\n",
             MAJOR(devnum), MINOR(devnum), DEV_COUNT);
     
-
+    printk(KERN_INFO "ifacepref_init() leaving\n");
     PDEBUG("ifacepref_init() leaving\n");
     return 0;
 }
@@ -120,18 +120,21 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     size_t read_count;
     int pending;
 
-    PDEBUG("ifacepref_read() entering count=%u, offset=%llu\n",
-            count, *offp);
+    PDEBUG("ifacepref_read() entering offset=%llu, count=%u\n",
+            *offp, count);
 
     /* input sanity check */
     if (*offp < 0) {
-        PDEBUG("ifacepref_read() ERROR negative offset provided\n");
+        PDEBUG("ifacepref_read() negative offset detected\n");
+        PDEBUG("ifacepref_read() leaving with %d\n", -EINVAL);
         return -EINVAL;
     }
 
     /* trivial invocation */
-    if (count == 0)
+    if (count == 0) {
+        PDEBUG("ifacepref_read() leaving with 0\n");
         return 0;
+    }
 
     /* calculate start and end of requested read region */
     start = buffer + *offp;
@@ -139,7 +142,8 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 
     /* out of bound checks on read region */
     if (start > content_end) {
-        PDEBUG("ifacepref_read() offset bigger than content size -> EOF; leaving with 0\n");
+        PDEBUG("ifacepref_read() offset bigger than content size\n");
+        PDEBUG("ifacepref_read() leaving with 0\n");
         return 0;
     }
     if (end > content_end)
@@ -149,13 +153,12 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 
     pending = copy_to_user(user_buff, (const void *)(start), read_count);
     if (pending) {
-        PDEBUG("ifacepref_read() ERROR not valid user-space pointer\n");
+        PDEBUG("ifacepref_read() copy_to_user() detected an invalid user-space pointer\n");
+        PDEBUG("ifacepref_read() leaving with %d\n", -EFAULT);
         return -EFAULT;
     }
 
     *offp += read_count;
-    PDEBUG("ifacepref_read() %u bytes of data copied to user-space\n",
-            read_count);
 
     PDEBUG("ifacepref_read() leaving with %u\n", read_count);
     return read_count;
@@ -169,12 +172,13 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
     size_t write_count;
     int pending;
 
-    PDEBUG("ifacepref_write() entering count=%u, offset=%llu\n",
-            count, *offp);
+    PDEBUG("ifacepref_write() entering offset=%llu, count=%u\n",
+            *offp, count);
    
    /* input sanity checks */
    if (*offp != 0) {
-        PDEBUG("ifacepref_write() ERROR requested offset is not 0\n");
+        PDEBUG("ifacepref_write() offset is not 0\n");
+        PDEBUG("ifacepref_write() leaving with %d\n", -EFBIG);
         return -EFBIG;
    }
 
@@ -188,7 +192,8 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 
    /* sanity checks on write region */
    if (end > buffer_end) {
-        PDEBUG("ifacepref_write() ERROR requested offset is not 0\n");
+        PDEBUG("ifacepref_write() asked to write beyond device range\n");
+        PDEBUG("ifacepref_write() leaving with %d\n", -ENOSPC);
         return -ENOSPC;
    }
 
@@ -197,15 +202,13 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 
     pending = copy_from_user(start, user_buff, write_count);
     if (pending) {
-        PDEBUG("ifacepref_write() ERROR not valid user-space pointer\n");
+        PDEBUG("ifacepref_write() copy_to_user() detected an invalid user-space pointer\n");
+        PDEBUG("ifacepref_write() leaving with %d\n", -EFAULT);
         return -EFAULT;
     }
-    PDEBUG("ifacepref_write() %u bytes of data copied from user-space\n",
-            write_count);
 
     *offp += write_count;
-    PDEBUG("ifacepref_write() leaving with %u\n",
-            write_count);
+    PDEBUG("ifacepref_write() leaving with %u\n", write_count);
     return write_count;
 }
 
