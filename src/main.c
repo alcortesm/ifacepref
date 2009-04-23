@@ -5,6 +5,7 @@
 #include <linux/if.h>
 
 MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Alberto Cortes");
 MODULE_VERSION("0.4");
 
 /* define PDEBUG & PDEBUGG */

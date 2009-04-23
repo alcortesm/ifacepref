@@ -2,15 +2,15 @@
 *swp
 
 # ignore module compilation subproducts
-src/.ifacepref.o.d
-src/.ifacepref.ko.cmd
-src/.ifacepref.mod.o.cmd
-src/.ifacepref.o.cmd
+src/.*.o.d
+src/.*.ko.cmd
+src/.*.mod.o.cmd
+src/.*.o.cmd
 src/.tmp_versions/
-src/.tmp_versions/ifacepref.mod
+src/.tmp_versions/*.mod
 src/Module.symvers
-src/ifacepref.ko
-src/ifacepref.mod.c
-src/ifacepref.mod.o
-src/ifacepref.o
+src/*.ko
+src/*.mod.c
+src/*.mod.o
+src/*.o
 src/modules.order
