@@ -32,12 +32,13 @@
 #endif
 
 
-/* struct to store all device stuff */
-struct dev {
+/* device resources and stuff */
+struct ifacepref_dev {
     char buffer[IFNAMSIZ];
     char * content_end;
     dev_t  number;
     struct cdev cdev;
+    struct rw_semaphore sem;
 };
 #define IFACEPREF_BUFFER_END (dev.buffer + IFNAMSIZ - 1)
 

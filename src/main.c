@@ -3,6 +3,7 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/if.h>
+#include <linux/rwsem.h>
 
 #include "ifacepref.h"
 
@@ -10,9 +11,9 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alberto Cortes");
 MODULE_VERSION("0.4");
 
-struct dev dev;
+struct ifacepref_dev dev;
 
-struct file_operations fops = {
+struct file_operations ifacepref_fops = {
     .owner = THIS_MODULE,
     .read = ifacepref_read,
     .write = ifacepref_write,
@@ -23,9 +24,12 @@ ifacepref_init(void)
 {
     int err;
     
-    /* initialize buffer */
-    memset(dev.buffer, '\0', IFNAMSIZ);
+    /* initialize device resources and stuff */
+    memset(&dev, '\0', sizeof(struct ifacepref_dev));
     dev.content_end =  dev.buffer;
+    cdev_init(&dev.cdev, &ifacepref_fops);
+    dev.cdev.owner = THIS_MODULE;
+    init_rwsem(&dev.sem);
 
     /* device number allocation */
     if (!IFACEPREF_MAJOR) /* dynamic allocation */
@@ -45,8 +49,6 @@ ifacepref_init(void)
             MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 
     /* char device registration */
-    cdev_init(&dev.cdev, &fops);
-    dev.cdev.owner = THIS_MODULE;
     err = cdev_add(&dev.cdev, dev.number, IFACEPREF_DEV_COUNT);
     if (err) {
         printk(KERN_WARNING "ifacepref: can't register char device\n");
@@ -91,6 +93,8 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     start = dev.buffer + *offp;
     end   = start + count - 1;
 
+    down_read(&dev.sem);
+
     /* out of bound checks on read region */
     if (start > dev.content_end)
         return 0;
@@ -105,6 +109,8 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
         return -EFAULT;
 
     *offp += read_count;
+
+    up_read(&dev.sem);
     return read_count;
 }
 
@@ -113,7 +119,6 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 {
     char * start;
     char * end;
-    size_t write_count;
     int pending;
 
    /* input sanity checks */
@@ -132,15 +137,18 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    if (end > IFACEPREF_BUFFER_END)
         return -ENOSPC;
 
-    write_count = end - start + 1 ;
+    down_write(&dev.sem);
+
     dev.content_end = end;
 
-    pending = copy_from_user(start, user_buff, write_count);
+    pending = copy_from_user(start, user_buff, count);
     if (pending)
         return -EFAULT;
 
-    *offp += write_count;
-    return write_count;
+    *offp += count;
+
+    up_write(&dev.sem);
+    return count;
 }
 
 module_init(ifacepref_init);
