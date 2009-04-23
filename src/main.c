@@ -22,27 +22,26 @@ static int
 ifacepref_init(void)
 {
     int err;
-    unsigned int major;
-    int i;
     
-    PDEBUG("ifacepref_init() entering\n");
-
-    PDEBUG("ifacepref_init() cleaning buffer\n");
-    for (i=0; i<IFNAMSIZ; i++)
-        dev.buffer[i] = '\0';
+    /* initialize buffer */
+    memset(dev.buffer, '\0', IFNAMSIZ);
     dev.content_end =  dev.buffer;
 
-    /* major number allocation */
-    major = IFACEPREF_MAJOR;
-    if (!major)
-        err = alloc_chrdev_region(&(dev.number), IFACEPREF_MINOR, IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
-    else {
-        dev.number = MKDEV(major, IFACEPREF_MINOR);
-        err = register_chrdev_region(dev.number, IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
+    /* device number allocation */
+    if (!IFACEPREF_MAJOR) /* dynamic allocation */
+        err = alloc_chrdev_region(&(dev.number), IFACEPREF_MINOR,
+                IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
+    else { /* static allocation */
+        dev.number = MKDEV(IFACEPREF_MAJOR, IFACEPREF_MINOR);
+        err = register_chrdev_region(dev.number,
+                IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
     }
-    if (err)
-        return -1;
-    PDEBUG("ifacepref_init() registered at major=%u, minor=%u, count=%u\n",
+    if (err) {
+        printk(KERN_WARNING "ifacepref: can't get major %d\n",
+                IFACEPREF_MAJOR);
+        return err;
+    }
+    PDEBUG("registered at major=%u, minor=%u, count=%u\n",
             MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 
     /* char device registration */
@@ -50,17 +49,14 @@ ifacepref_init(void)
     dev.cdev.owner = THIS_MODULE;
     err = cdev_add(&dev.cdev, dev.number, IFACEPREF_DEV_COUNT);
     if (err) {
-        printk(KERN_ERR "ifacepref_init() err adding char device to major=%u, minor=%u, count=%u\n",
-                MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
+        printk(KERN_WARNING "ifacepref: can't add char device\n");
         unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT);
-        PDEBUG("ifacepref_init() unregister major=%u, minor=%u, count=%u\n",
+        PDEBUG("unregistered from major=%u, minor=%u, count=%u\n",
                 MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
         return -1;
     }
-    PDEBUG("ifacepref_init() char device added to major=%u, minor=%u, count=%u\n",
-            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
+    PDEBUG("char device added\n");
     
-    printk(KERN_INFO "ifacepref_init() leaving\n");
     return 0;
 }
 
