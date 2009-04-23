@@ -3,7 +3,7 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/if.h>
-#include <linux/rwsem.h>
+#include <linux/semaphore.h>
 
 #include "ifacepref.h"
 
