@@ -38,7 +38,7 @@ struct ifacepref_dev {
     char * content_end;
     dev_t  number;
     struct cdev cdev;
-    struct rw_semaphore sem;
+    struct semaphore sem;
 };
 #define IFACEPREF_BUFFER_END (dev.buffer + IFNAMSIZ - 1)
 

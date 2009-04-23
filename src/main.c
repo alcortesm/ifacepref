@@ -29,7 +29,7 @@ ifacepref_init(void)
     dev.content_end =  dev.buffer;
     cdev_init(&dev.cdev, &ifacepref_fops);
     dev.cdev.owner = THIS_MODULE;
-    init_rwsem(&dev.sem);
+    init_MUTEX(&dev.sem);
 
     /* device number allocation */
     if (!IFACEPREF_MAJOR) /* dynamic allocation */
@@ -93,11 +93,12 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     start = dev.buffer + *offp;
     end   = start + count - 1;
 
-    down_read(&dev.sem);
+    if (down_interruptible(&dev.sem))
+        return -ERESTARTSYS;
 
     /* out of bound checks on read region */
     if (start > dev.content_end) {
-        up_read(&dev.sem);
+        up(&dev.sem);
         return 0;
     }
 
@@ -108,13 +109,13 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 
     pending = copy_to_user(user_buff, (const void *)(start), read_count);
     if (pending) {
-        up_read(&dev.sem);
+        up(&dev.sem);
         return -EFAULT;
     }
 
     *offp += read_count;
 
-    up_read(&dev.sem);
+    up(&dev.sem);
     return read_count;
 }
 
@@ -141,19 +142,20 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    if (end > IFACEPREF_BUFFER_END)
         return -ENOSPC;
 
-    down_write(&dev.sem);
+    if (down_interruptible(&dev.sem))
+        return -ERESTARTSYS;
 
     dev.content_end = end;
 
     pending = copy_from_user(start, user_buff, count);
     if (pending) {
-        up_write(&dev.sem);
+        up(&dev.sem);
         return -EFAULT;
     }
 
     *offp += count;
 
-    up_write(&dev.sem);
+    up(&dev.sem);
     return count;
 }
 
