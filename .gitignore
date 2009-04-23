@@ -14,3 +14,4 @@ src/*.mod.c
 src/*.mod.o
 src/*.o
 src/modules.order
+src/ifacepref_test

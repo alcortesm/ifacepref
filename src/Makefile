@@ -14,6 +14,7 @@ install: default
 	cp ifacepref.ko   /tmp/
 	cp ifacepref_load /tmp/
 	cp ifacepref_unload /tmp/
+	cp ifacepref_test /tmp/
 	mkdir -p ${HOME}/man/man4/
 	cp ifacepref.4  ${HOME}/man/man4/
 
@@ -33,12 +34,20 @@ else
     KERNELDIR ?= $(modulesdir)
     PWD := $(shell pwd)
 
-default:
+default: ifacepref_test
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um modules
+
+ifacepref_test: test.o
+	$(CC) -Wall -g -o ifacepref_test test.o
+
+test.o:
+	$(CC) -Wall -g -c test.c
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um clean
 	- rm -f modules.order
+	- rm -f ifacepref_test
+	- rm -f test.o
 
 endif
 
