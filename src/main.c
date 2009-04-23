@@ -96,8 +96,10 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     down_read(&dev.sem);
 
     /* out of bound checks on read region */
-    if (start > dev.content_end)
+    if (start > dev.content_end) {
+        up_read(&dev.sem);
         return 0;
+    }
 
     if (end > dev.content_end)
         end = dev.content_end;
@@ -105,8 +107,10 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     read_count = end - start + 1;
 
     pending = copy_to_user(user_buff, (const void *)(start), read_count);
-    if (pending)
+    if (pending) {
+        up_read(&dev.sem);
         return -EFAULT;
+    }
 
     *offp += read_count;
 
@@ -142,8 +146,10 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
     dev.content_end = end;
 
     pending = copy_from_user(start, user_buff, count);
-    if (pending)
+    if (pending) {
+        up_write(&dev.sem);
         return -EFAULT;
+    }
 
     *offp += count;
 
