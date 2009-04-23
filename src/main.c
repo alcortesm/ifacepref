@@ -41,7 +41,7 @@ ifacepref_init(void)
                 IFACEPREF_MAJOR);
         return err;
     }
-    PDEBUG("registered at major=%u, minor=%u, count=%u\n",
+    PDEBUG("registered device number: (%u, %u), count=%u\n",
             MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 
     /* char device registration */
@@ -49,13 +49,13 @@ ifacepref_init(void)
     dev.cdev.owner = THIS_MODULE;
     err = cdev_add(&dev.cdev, dev.number, IFACEPREF_DEV_COUNT);
     if (err) {
-        printk(KERN_WARNING "ifacepref: can't add char device\n");
+        printk(KERN_WARNING "ifacepref: can't register char device\n");
         unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT);
-        PDEBUG("unregistered from major=%u, minor=%u, count=%u\n",
+        PDEBUG("unregistered device number: (%u, %u), count=%u\n",
                 MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
         return -1;
     }
-    PDEBUG("char device added\n");
+    PDEBUG("registered char device\n");
     
     return 0;
 }
@@ -63,20 +63,12 @@ ifacepref_init(void)
 static void
 ifacepref_exit(void)
 {
-    PDEBUG("ifacepref_exit() entering\n");
-
-    /* free allocated device numbers */
-    unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT); 
-    PDEBUG("ifacepref_exit() unregister major=%u, minor=%u, count=%u\n",
-            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
-
-    /* unregister char device */
-    PDEBUG("ifacepref_exit() unregistering char device major=%u, minor=%u, count=%u...",
-            MAJOR(dev.cdev.dev), MINOR(dev.cdev.dev), dev.cdev.count);
     cdev_del(&dev.cdev);
-    PDEBUG("done\n");
+    PDEBUG("unregistered char device\n");
 
-    PDEBUG("ifacepref_exit() leaving\n");
+    unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT); 
+    PDEBUG("unregistered device number: (%u, %u), count=%u\n",
+            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 }
 
 ssize_t
