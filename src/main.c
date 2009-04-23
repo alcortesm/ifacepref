@@ -4,42 +4,14 @@
 #include <linux/cdev.h>
 #include <linux/if.h>
 
+#include "ifacepref.h"
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alberto Cortes");
 MODULE_VERSION("0.4");
 
-/* define PDEBUG & PDEBUGG */
-#undef PDEBUG
-#ifdef IFACEPREF_DEBUG
-#  ifdef __KERNEL__
-#    define PDEBUG(fmt, args...) printk( KERN_DEBUG "ifacepref: " fmt, ## args)
-#  else
-#    define PDEBUG(fmt, args...) fprintf(stderr, fmt, ## args)
-#  endif
-#else
-#  define PDEBUG(fmt, args...) /* not debugging */
-#endif
+struct dev dev;
 
-#undef PDEBUGG
-#define PDEBUGG(fmt, args...) /* placeholder */
-
-const char * const NAME="ifacepref";
-const unsigned int DEV_COUNT = 1;
-const unsigned int MAJOR = 0; /* 0 means dynamic allocation */
-const unsigned int MINOR = 0;
-
-struct dev {
-    char buffer[IFNAMSIZ];
-    char * content_end;
-    dev_t  num;
-    struct cdev * cdevp;
-} dev;
-#define buffer_end (dev.buffer + IFNAMSIZ - 1)
-
-int ifacepref_open(struct inode *inodep, struct file * filp);
-int ifacepref_release(struct inode *inodep, struct file * filp);
-ssize_t ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp);
-ssize_t ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp);
 struct file_operations fops = {
     .owner = THIS_MODULE,
     .read = ifacepref_read,
@@ -61,36 +33,34 @@ ifacepref_init(void)
     dev.content_end =  dev.buffer;
 
     /* major number allocation */
-    major = MAJOR;
+    major = IFACEPREF_MAJOR;
     if (!major)
-        err = alloc_chrdev_region(&(dev.num), MINOR, DEV_COUNT, NAME);
+        err = alloc_chrdev_region(&(dev.number), IFACEPREF_MINOR, IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
     else {
-        dev.num = MKDEV(major, MINOR);
-        err = register_chrdev_region(dev.num, DEV_COUNT, NAME);
+        dev.number = MKDEV(major, IFACEPREF_MINOR);
+        err = register_chrdev_region(dev.number, IFACEPREF_DEV_COUNT, IFACEPREF_NAME);
     }
     if (err)
         return -1;
     PDEBUG("ifacepref_init() registered at major=%u, minor=%u, count=%u\n",
-            MAJOR(dev.num), MINOR(dev.num), DEV_COUNT);
+            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 
     /* char device registration */
-    dev.cdevp = cdev_alloc();
-    dev.cdevp->ops = &fops;
-    dev.cdevp->owner = THIS_MODULE;
-    err = cdev_add(dev.cdevp, dev.num, DEV_COUNT);
+    cdev_init(&dev.cdev, &fops);
+    dev.cdev.owner = THIS_MODULE;
+    err = cdev_add(&dev.cdev, dev.number, IFACEPREF_DEV_COUNT);
     if (err) {
         printk(KERN_ERR "ifacepref_init() err adding char device to major=%u, minor=%u, count=%u\n",
-                MAJOR(dev.num), MINOR(dev.num), DEV_COUNT);
-        unregister_chrdev_region(dev.num, DEV_COUNT);
+                MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
+        unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT);
         PDEBUG("ifacepref_init() unregister major=%u, minor=%u, count=%u\n",
-                MAJOR(dev.num), MINOR(dev.num), DEV_COUNT);
+                MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
         return -1;
     }
     PDEBUG("ifacepref_init() char device added to major=%u, minor=%u, count=%u\n",
-            MAJOR(dev.num), MINOR(dev.num), DEV_COUNT);
+            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
     
     printk(KERN_INFO "ifacepref_init() leaving\n");
-    PDEBUG("ifacepref_init() leaving\n");
     return 0;
 }
 
@@ -100,14 +70,14 @@ ifacepref_exit(void)
     PDEBUG("ifacepref_exit() entering\n");
 
     /* free allocated device numbers */
-    unregister_chrdev_region(dev.num, DEV_COUNT); 
+    unregister_chrdev_region(dev.number, IFACEPREF_DEV_COUNT); 
     PDEBUG("ifacepref_exit() unregister major=%u, minor=%u, count=%u\n",
-            MAJOR(dev.num), MINOR(dev.num), DEV_COUNT);
+            MAJOR(dev.number), MINOR(dev.number), IFACEPREF_DEV_COUNT);
 
     /* unregister char device */
     PDEBUG("ifacepref_exit() unregistering char device major=%u, minor=%u, count=%u...",
-            MAJOR(dev.cdevp->dev), MINOR(dev.cdevp->dev), dev.cdevp->count);
-    cdev_del(dev.cdevp);
+            MAJOR(dev.cdev.dev), MINOR(dev.cdev.dev), dev.cdev.count);
+    cdev_del(&dev.cdev);
     PDEBUG("done\n");
 
     PDEBUG("ifacepref_exit() leaving\n");
@@ -192,7 +162,7 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    end   = start + count - 1 ;
 
    /* sanity checks on write region */
-   if (end > buffer_end) {
+   if (end > IFACEPREF_BUFFER_END) {
         PDEBUG("ifacepref_write() asked to write beyond device range\n");
         PDEBUG("ifacepref_write() leaving with %d\n", -ENOSPC);
         return -ENOSPC;
