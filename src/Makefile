@@ -40,7 +40,7 @@ default: ifacepref_test
 ifacepref_test: test.o
 	$(CC) -Wall -g -o ifacepref_test test.o
 
-test.o:
+test.o: test.c
 	$(CC) -Wall -g -c test.c
 
 clean:
