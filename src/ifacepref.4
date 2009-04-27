@@ -35,6 +35,9 @@ will fail.
 Read operations don't need to be atomic. But as interface names are quite
 small (16 bytes for most kernels), it is easy to read the whole device
 in only one go.
+.SS Polling
+Writing to the device is always possible. Polling for read will return when
+new content is available on the device.
 .SS Configuration
 If your system does not have
 \fI/dev/ifacepref\fP created already, you will
@@ -51,10 +54,6 @@ use \fBlsmod\fP to ask the system about them:
     ; chown root:root /dev/ifacepref
 .fi
 
-.SS "/proc Interface"
-There is no \fB/proc\fP interface (yet).
-.SS "/sys Interface"
-There is no \fB/sys\fP interface (yet).
 .SH EXAMPLES
 To set \fIeth0\fP as the preferred interface:
 
@@ -71,9 +70,6 @@ To get the preferred interface:
 .SH FILES
 .I /dev/ifacepref
 .SH BUGS
-There are race conditions on concurrent writes.
-.LP
-Module execution is too verbose.
 .LP
 The iface name is not checked for existance.
 .SH AUTHOR
