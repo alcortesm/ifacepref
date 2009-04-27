@@ -44,9 +44,8 @@ struct ifacepref_dev {
 
 
 /* prototypes of shared functions */
-int ifacepref_open(struct inode *inodep, struct file * filp);
-int ifacepref_release(struct inode *inodep, struct file * filp);
 ssize_t ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp);
 ssize_t ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp);
+static unsigned int ifacepref_poll(struct file *filp, poll_table *wait);
 
 #endif /* _IFACEPREF_H_ */

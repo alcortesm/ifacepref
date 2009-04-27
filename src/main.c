@@ -4,19 +4,21 @@
 #include <linux/cdev.h>
 #include <linux/if.h>
 #include <linux/semaphore.h>
+#include <linux/poll.h>
 
 #include "ifacepref.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alberto Cortes");
-MODULE_VERSION("0.5");
+MODULE_VERSION("0.6");
 
 struct ifacepref_dev dev;
 
 struct file_operations ifacepref_fops = {
     .owner = THIS_MODULE,
-    .read = ifacepref_read,
+    .read  = ifacepref_read,
     .write = ifacepref_write,
+    .poll  = ifacepref_poll,
 };
 
 static int
@@ -157,6 +159,12 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 
     up(&dev.sem);
     return count;
+}
+
+static unsigned int
+ifacepref_poll(struct file *filp, poll_table *wait)
+{
+    return 0;
 }
 
 module_init(ifacepref_init);
