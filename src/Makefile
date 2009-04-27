@@ -15,6 +15,7 @@ install: default
 	cp ifacepref_load /tmp/
 	cp ifacepref_unload /tmp/
 	cp ifacepref_test /tmp/
+	cp ifacepref_watcher_cli /tmp/
 	mkdir -p ${HOME}/man/man4/
 	cp ifacepref.4  ${HOME}/man/man4/
 
@@ -34,7 +35,7 @@ else
     KERNELDIR ?= $(modulesdir)
     PWD := $(shell pwd)
 
-default: ifacepref_test
+default: ifacepref_test ifacepref_watcher_cli
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um modules
 
 ifacepref_test: test.o
@@ -42,6 +43,12 @@ ifacepref_test: test.o
 
 test.o: test.c
 	$(CC) -Wall -g -c test.c
+
+ifacepref_watcher_cli: watcher_cli.o
+	$(CC) -Wall -g -o ifacepref_watcher_cli watcher_cli.o
+
+watcher_cli.o: watcher_cli.c
+	$(CC) -Wall -g -c watcher_cli.c
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um clean

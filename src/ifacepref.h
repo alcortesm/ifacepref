@@ -39,6 +39,8 @@ struct ifacepref_dev {
     dev_t  number;
     struct cdev cdev;
     struct semaphore sem;
+    int isnewdata;
+    wait_queue_head_t newdataq;
 };
 #define IFACEPREF_BUFFER_END (dev.buffer + IFNAMSIZ - 1)
 

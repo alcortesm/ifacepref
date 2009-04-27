@@ -32,6 +32,8 @@ ifacepref_init(void)
     cdev_init(&dev.cdev, &ifacepref_fops);
     dev.cdev.owner = THIS_MODULE;
     init_MUTEX(&dev.sem);
+    dev.isnewdata = 0;
+    init_waitqueue_head(&dev.newdataq);
 
     /* device number allocation */
     if (!IFACEPREF_MAJOR) /* dynamic allocation */
@@ -156,6 +158,8 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
     }
 
     *offp += count;
+    dev.isnewdata = 1;
+    wake_up_interruptible(&dev.newdataq);
 
     up(&dev.sem);
     return count;
@@ -164,7 +168,15 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 static unsigned int
 ifacepref_poll(struct file *filp, poll_table *wait)
 {
-    return 0;
+    unsigned int mask = 0 | POLLOUT | POLLWRNORM; /* ifacepref is always writable */
+    down(&dev.sem);
+    poll_wait(filp, &dev.newdataq, wait);
+    if (dev.isnewdata) {
+        mask |= POLLIN | POLLRDNORM ; /* readable */
+        dev.isnewdata = 0;
+    }
+    up(&dev.sem);
+    return mask;
 }
 
 module_init(ifacepref_init);
