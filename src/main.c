@@ -9,7 +9,7 @@
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alberto Cortes");
-MODULE_VERSION("0.4");
+MODULE_VERSION("0.5");
 
 struct ifacepref_dev dev;
 
