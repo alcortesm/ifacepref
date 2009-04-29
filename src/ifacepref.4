@@ -30,6 +30,8 @@ device will fail. Ifacepref dosen't ensure that the written data
 is a real device or well formed interface name. The writer is
 responsible of storing the ending '\\0' of the interface name.
 .LP
+The empty string is returned if there is no preferred interface.
+.LP
 Write operations are atomic: each write system call will set a
 new preferred iface; don't try to splice a write between severall
 system calls as any attempt to write at a non-zero offset
@@ -69,6 +71,12 @@ To get the preferred interface:
 .nf
     ; cat /dev/ifacepref ; echo
     eth0
+.fi
+
+To indicate there is no preferred interface:
+
+.nf
+    ; echo -n -e "\\0000" > /dev/ifacepref
 .fi
 
 .SH FILES
