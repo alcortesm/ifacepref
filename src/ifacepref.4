@@ -40,9 +40,13 @@ will fail.
 Read operations don't need to be atomic. But as interface names are quite
 small (16 bytes for most kernels), it is easy to read the whole device
 in only one go.
-.SS Polling
+.SS Advanced usage: polling
 Writing to the device is always possible. Polling for read will return when
 new content is available on the device.
+.SS Misuse
+Ifacepref dosn't validate the data written to it, so the easiest ways to
+misuse it are: writting not null terminated data or writting invalid or
+non-existent interface names.
 .SS Configuration
 If your system does not have
 \fI/dev/ifacepref\fP created already, you will
