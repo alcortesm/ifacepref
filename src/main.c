@@ -135,7 +135,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     *offp += ecount;
 
     open_infop = (struct ifacepref_per_open_info *) filp->private_data;
-    open_innfop->read_since_last_write = 1;
+    open_infop->read_since_last_write = 1;
 
     up(&dev.sem);
     return ecount;
