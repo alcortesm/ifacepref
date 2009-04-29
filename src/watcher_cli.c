@@ -21,8 +21,12 @@ main(int argc, char ** argv)
         exit(EXIT_FAILURE);
     }
 
+    /* we don't know if the data stored in the device
+       is going to have an ending '\0', so we allocate
+       1 additional char in the buffer, just to be able
+       to print the buffer as a string */
     char * buf;
-    buf = (char *) calloc(IFNAMSIZ, sizeof(char));
+    buf = (char *) calloc(IFNAMSIZ + 1, sizeof(char));
     if (!buf) {
         perror("calloc()");
         exit(EXIT_FAILURE);
@@ -35,6 +39,7 @@ main(int argc, char ** argv)
             perror("read()");
             exit(EXIT_FAILURE);
         }
+        buf[nr] = '\0'; /* just in case there is no '\0' in the device */
         fprintf(stdout, "%s\n", buf);
         fflush(stdout);
 
