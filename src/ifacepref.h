@@ -30,11 +30,13 @@
 #ifndef IFACEPREF_NINOR
 #define IFACEPREF_MINOR 0
 #endif
-
+#ifndef IFACEPREF_SIZE
+#define IFACEPREF_SIZE IFNAMSIZ
+#endif
 
 /* device resources and stuff */
 struct ifacepref_dev {
-    char buffer[IFNAMSIZ];
+    char buffer[IFACEPREF_SIZE];
     char * content_end;
     dev_t  number;
     struct cdev cdev;
@@ -42,7 +44,6 @@ struct ifacepref_dev {
     int isnewdata;
     wait_queue_head_t newdataq;
 };
-#define IFACEPREF_BUFFER_END (dev.buffer + IFNAMSIZ - 1)
 
 
 /* prototypes of shared functions */

@@ -125,8 +125,6 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 ssize_t
 ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, loff_t *offp)
 {
-    char * firstp;
-    char * lastp;
     int pending;
 
    /* input sanity checks */
@@ -137,20 +135,16 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    if (count == 0)
        return 0;
 
-   /* calculate requestede write region */
-   firstp = dev.buffer;
-   lastp  = firstp + count - 1 ;
-
    /* sanity checks on write region */
-   if (lastp > IFACEPREF_BUFFER_END)
+   if (count > IFACEPREF_SIZE)
         return -ENOSPC;
 
    if (down_interruptible(&dev.sem))
        return -ERESTARTSYS;
 
-   dev.content_end = lastp;
+   dev.content_end = dev.buffer + count - 1;
 
-   pending = copy_from_user(firstp, user_buff, count);
+   pending = copy_from_user(dev.buffer, user_buff, count);
    if (pending) {
        up(&dev.sem);
        return -EFAULT;
