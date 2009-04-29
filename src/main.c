@@ -80,9 +80,9 @@ ifacepref_exit(void)
 ssize_t
 ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t *offp)
 {
-    const char * start;
-    const char * end;
-    size_t read_count;
+    const char * firstp;
+    const char * lastp;
+    size_t ecount; /* effective read count */
     int pending;
 
     /* input sanity check */
@@ -93,41 +93,40 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     if (count == 0)
         return 0;
 
-    /* calculate start and end of requested read region */
-    start = dev.buffer + *offp;
-    end   = start + count - 1;
+    /* calculate requested read region */
+    firstp = dev.buffer + *offp;
+    lastp  = firstp + count - 1;
 
     if (down_interruptible(&dev.sem))
         return -ERESTARTSYS;
 
     /* out of bound checks on read region */
-    if (start > dev.content_end) {
+    if (firstp > dev.content_end) {
         up(&dev.sem);
         return 0;
     }
+    if (lastp > dev.content_end)
+        lastp = dev.content_end;
 
-    if (end > dev.content_end)
-        end = dev.content_end;
+    /* effective read count */
+    ecount = lastp - firstp + 1;
 
-    read_count = end - start + 1;
-
-    pending = copy_to_user(user_buff, (const void *)(start), read_count);
+    pending = copy_to_user(user_buff, (const void *)(firstp), ecount);
     if (pending) {
         up(&dev.sem);
         return -EFAULT;
     }
 
-    *offp += read_count;
-
+    *offp += ecount;
     up(&dev.sem);
-    return read_count;
+    return ecount;
 }
 
 ssize_t
 ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, loff_t *offp)
 {
-    char * start;
-    char * end;
+    char * firstp;
+    char * lastp;
     int pending;
 
    /* input sanity checks */
@@ -138,29 +137,28 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
    if (count == 0)
        return 0;
 
-   /* calculate write region */
-   start = dev.buffer;
-   end   = start + count - 1 ;
+   /* calculate requestede write region */
+   firstp = dev.buffer;
+   lastp  = firstp + count - 1 ;
 
    /* sanity checks on write region */
-   if (end > IFACEPREF_BUFFER_END)
+   if (lastp > IFACEPREF_BUFFER_END)
         return -ENOSPC;
 
-    if (down_interruptible(&dev.sem))
-        return -ERESTARTSYS;
+   if (down_interruptible(&dev.sem))
+       return -ERESTARTSYS;
 
-    dev.content_end = end;
+   dev.content_end = lastp;
 
-    pending = copy_from_user(start, user_buff, count);
-    if (pending) {
-        up(&dev.sem);
-        return -EFAULT;
-    }
+   pending = copy_from_user(firstp, user_buff, count);
+   if (pending) {
+       up(&dev.sem);
+       return -EFAULT;
+   }
 
     *offp += count;
     dev.isnewdata = 1;
     wake_up_interruptible(&dev.newdataq);
-
     up(&dev.sem);
     return count;
 }
