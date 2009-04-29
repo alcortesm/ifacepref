@@ -24,8 +24,11 @@ Writting the name of the preferred iface to \fI/dev/ifacepref\fP
 will make the device remember it. It can be changed afterwards by
 aditional writes.
 .LP
-Network interface names are no longer than \fBIFNAMSIZ\fP bytes. Any attempt to
-write more than \fBIFNAMSIZ\fP bytes in the device will fail.
+Network interface names are strings no longer than \fBIFNAMSIZ\fP
+bytes. Any attempt to write more than \fBIFNAMSIZ\fP bytes in the
+device will fail. Ifacepref dosen't ensure that the written data
+is a real device or well formed interface name. The writer is
+responsible of storing the ending '\\0' of the interface name.
 .LP
 Write operations are atomic: each write system call will set a
 new preferred iface; don't try to splice a write between severall
@@ -58,22 +61,22 @@ use \fBlsmod\fP to ask the system about them:
 To set \fIeth0\fP as the preferred interface:
 
 .nf
-    ; echo -n "eth0" > /dev/ifacepref
+    ; echo -n -e "eth0\\0000" > /dev/ifacepref
 .fi
 
 To get the preferred interface:
 
 .nf
-    ; cat /dev/ifacepref
+    ; cat /dev/ifacepref ; echo
+    eth0
 .fi
 
 .SH FILES
 .I /dev/ifacepref
 .SH BUGS
 .LP
-The iface name is not checked for existance.
+None known. Email the author if you find any.
 .SH AUTHOR
-The kernel's ifacepref device was written by
-Alberto Cortes (alcortes@it.uc3m.es).
+Alberto Cortes <alcortes@it.uc3m.es>.
 .SH "SEE ALSO"
 \fBnetdevice\fP(7), \fBwrite\fP(2), \fBlsmod\fP(8)
