@@ -19,6 +19,8 @@ struct file_operations ifacepref_fops = {
     .read  = ifacepref_read,
     .write = ifacepref_write,
     .poll  = ifacepref_poll,
+    .open  = ifacepref_open,
+    .release = ifacepref_release,
 };
 
 static int
@@ -32,7 +34,8 @@ ifacepref_init(void)
     cdev_init(&dev.cdev, &ifacepref_fops);
     dev.cdev.owner = THIS_MODULE;
     init_MUTEX(&dev.sem);
-    dev.isnewdata = 0;
+    dev.oil.read_since_last_write = 0; /* not used, this is just the head */
+    dev.oil.next = NULL; /* empty list */
     init_waitqueue_head(&dev.newdataq);
 
     /* device number allocation */
@@ -69,6 +72,9 @@ ifacepref_init(void)
 static void
 ifacepref_exit(void)
 {
+    if (dev.oil.next)
+        PDEBUG("memory lost: there were per open info for some files\n");
+
     cdev_del(&dev.cdev);
     PDEBUG("unregistered char device\n");
 
@@ -84,6 +90,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     const char * lastp;
     size_t ecount; /* effective read count */
     int pending;
+    struct ifacepref_per_open_node * nodep = (struct ifacepref_per_open_node *) filp->private_data;
 
     /* input sanity check */
     if (*offp < 0)
@@ -118,6 +125,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     }
 
     *offp += ecount;
+    nodep->read_since_last_write = 1;
     up(&dev.sem);
     return ecount;
 }
@@ -125,33 +133,38 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 ssize_t
 ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, loff_t *offp)
 {
+    struct ifacepref_per_open_node * nodep;
     int pending;
 
-   /* input sanity checks */
-   if (*offp != 0)
+    /* input sanity checks */
+    if (*offp != 0)
         return -EFBIG;
 
-   /* trivial invocation */
-   if (count == 0)
-       return 0;
+    /* trivial invocation */
+    if (count == 0)
+        return 0;
 
-   /* sanity checks on write region */
-   if (count > IFACEPREF_SIZE)
+    /* sanity checks on write region */
+    if (count > IFACEPREF_SIZE)
         return -ENOSPC;
 
-   if (down_interruptible(&dev.sem))
-       return -ERESTARTSYS;
+    if (down_interruptible(&dev.sem))
+        return -ERESTARTSYS;
 
-   dev.content_end = dev.buffer + count - 1;
+    dev.content_end = dev.buffer + count - 1;
 
-   pending = copy_from_user(dev.buffer, user_buff, count);
-   if (pending) {
-       up(&dev.sem);
-       return -EFAULT;
-   }
+    pending = copy_from_user(dev.buffer, user_buff, count);
+    if (pending) {
+        up(&dev.sem);
+        return -EFAULT;
+    }
 
     *offp += count;
-    dev.isnewdata = 1;
+
+    /* notify the write to all open info nodes */
+    for (nodep = dev.oil.next; nodep != NULL; nodep = nodep->next)
+        nodep->read_since_last_write = 0;
+
     wake_up_interruptible(&dev.newdataq);
     up(&dev.sem);
     return count;
@@ -160,15 +173,54 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 static unsigned int
 ifacepref_poll(struct file *filp, poll_table *wait)
 {
+    struct ifacepref_per_open_node * nodep = (struct ifacepref_per_open_node *)
+        filp->private_data;
     unsigned int mask = 0 | POLLOUT | POLLWRNORM; /* ifacepref is always writable */
+
     down(&dev.sem);
     poll_wait(filp, &dev.newdataq, wait);
-    if (dev.isnewdata) {
+    if (!nodep->read_since_last_write) /* new data */
         mask |= POLLIN | POLLRDNORM ; /* readable */
-        dev.isnewdata = 0;
-    }
     up(&dev.sem);
     return mask;
+}
+
+int
+ifacepref_open(struct inode *inode, struct file * filp)
+{
+    struct ifacepref_per_open_node * nodep;
+    nodep = (struct ifacepref_per_open_node *)
+        kmalloc(sizeof(struct ifacepref_per_open_node), GFP_KERNEL);
+    if (!nodep)
+        return -ENOMEM;
+
+    down(&dev.sem);
+    nodep->next = dev.oil.next;
+    dev.oil.next = nodep;
+    filp->private_data = nodep;
+    nodep->read_since_last_write = 0;
+    up(&dev.sem);
+    
+    return 0;
+}
+
+int
+ifacepref_release(struct inode *inode, struct file * filp)
+{
+    /* find current node in lists of opens and delete it */
+    struct ifacepref_per_open_node * nodep;
+    struct ifacepref_per_open_node * lastp;
+    for (nodep = dev.oil.next, lastp = &dev.oil ;
+            nodep != NULL;
+            lastp = nodep, nodep = nodep->next) {
+        if (nodep == filp->private_data) {
+            lastp->next = nodep->next;
+            kfree(nodep);
+            return 0;
+        }
+    }
+    printk(KERN_ERR "ifacepref: release: node not found on list of opens\n");
+    return -EIO;
 }
 
 module_init(ifacepref_init);

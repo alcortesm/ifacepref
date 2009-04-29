@@ -34,15 +34,24 @@
 #define IFACEPREF_SIZE IFNAMSIZ
 #endif
 
-/* device resources and stuff */
+/* Per open info. Pointed by filp->private_data.
+   Some operations like write also need to modify every
+   per open info, so a linked list of every one is stored
+   by a linked list by the global device data */
+struct ifacepref_per_open_node {
+    int read_since_last_write;
+    struct ifacepref_per_open_node * next;
+};
+
+/* global device data */
 struct ifacepref_dev {
-    char buffer[IFACEPREF_SIZE];
-    char * content_end;
-    dev_t  number;
-    struct cdev cdev;
-    struct semaphore sem;
-    int isnewdata;
-    wait_queue_head_t newdataq;
+    char buffer[IFACEPREF_SIZE]; /* data storage */
+    char * content_end;          /* pointer to data last char */
+    dev_t  number;               /* device number */
+    struct cdev cdev;            /* char device */
+    struct semaphore sem;        /* semaphore for mutual exclusion on concurrent access */
+    struct ifacepref_per_open_node oil; /* open info list: empty node, it's just the head */
+    wait_queue_head_t newdataq;  /* to wait for new data to be read */
 };
 
 
@@ -50,5 +59,7 @@ struct ifacepref_dev {
 ssize_t ifacepref_read(struct file * filp, char __user *buff, size_t count, loff_t *offp);
 ssize_t ifacepref_write(struct file * filp, const char __user *buff, size_t count, loff_t *offp);
 static unsigned int ifacepref_poll(struct file *filp, poll_table *wait);
+int ifacepref_open(struct inode *inode, struct file * filp);
+int ifacepref_release(struct inode *inode, struct file * filp);
 
 #endif /* _IFACEPREF_H_ */
