@@ -72,8 +72,16 @@ ifacepref_init(void)
 static void
 ifacepref_exit(void)
 {
-    if (dev.oil.next)
-        PDEBUG("memory lost: there were per open info for some files\n");
+    struct ifacepref_per_open_info * nodep;
+
+    if (dev.oil.next) {
+        PDEBUG("there are still per open data for some files, trying to force free...\n");
+        for (nodep = dev.oil.next; nodep != NULL; nodep = dev.oil.next) {
+            dev.oil.next = nodep->next;
+            kfree(nodep);
+        }
+        PDEBUG("...done\n");
+    }
 
     cdev_del(&dev.cdev);
     PDEBUG("unregistered char device\n");
@@ -90,7 +98,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     const char * lastp;
     size_t ecount; /* effective read count */
     int pending;
-    struct ifacepref_per_open_node * nodep = (struct ifacepref_per_open_node *) filp->private_data;
+    struct ifacepref_per_open_info * open_infop;
 
     /* input sanity check */
     if (*offp < 0)
@@ -125,7 +133,10 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
     }
 
     *offp += ecount;
-    nodep->read_since_last_write = 1;
+
+    open_infop = (struct ifacepref_per_open_info *) filp->private_data;
+    open_innfop->read_since_last_write = 1;
+
     up(&dev.sem);
     return ecount;
 }
@@ -133,7 +144,7 @@ ifacepref_read(struct file * filp, char __user *user_buff, size_t count, loff_t 
 ssize_t
 ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, loff_t *offp)
 {
-    struct ifacepref_per_open_node * nodep;
+    struct ifacepref_per_open_info * nodep;
     int pending;
 
     /* input sanity checks */
@@ -173,13 +184,13 @@ ifacepref_write(struct file * filp, const char __user *user_buff, size_t count, 
 static unsigned int
 ifacepref_poll(struct file *filp, poll_table *wait)
 {
-    struct ifacepref_per_open_node * nodep = (struct ifacepref_per_open_node *)
-        filp->private_data;
+    struct ifacepref_per_open_info * open_infop;
     unsigned int mask = 0 | POLLOUT | POLLWRNORM; /* ifacepref is always writable */
 
     down(&dev.sem);
     poll_wait(filp, &dev.newdataq, wait);
-    if (!nodep->read_since_last_write) /* new data */
+    open_infop = (struct ifacepref_per_open_info *) filp->private_data;
+    if (!open_infop->read_since_last_write) /* new data */
         mask |= POLLIN | POLLRDNORM ; /* readable */
     up(&dev.sem);
     return mask;
@@ -188,9 +199,9 @@ ifacepref_poll(struct file *filp, poll_table *wait)
 int
 ifacepref_open(struct inode *inode, struct file * filp)
 {
-    struct ifacepref_per_open_node * nodep;
-    nodep = (struct ifacepref_per_open_node *)
-        kmalloc(sizeof(struct ifacepref_per_open_node), GFP_KERNEL);
+    struct ifacepref_per_open_info * nodep;
+    nodep = (struct ifacepref_per_open_info *)
+        kmalloc(sizeof(struct ifacepref_per_open_info), GFP_KERNEL);
     if (!nodep)
         return -ENOMEM;
 
@@ -208,8 +219,8 @@ int
 ifacepref_release(struct inode *inode, struct file * filp)
 {
     /* find current node in lists of opens and delete it */
-    struct ifacepref_per_open_node * nodep;
-    struct ifacepref_per_open_node * lastp;
+    struct ifacepref_per_open_info * nodep;
+    struct ifacepref_per_open_info * lastp;
     for (nodep = dev.oil.next, lastp = &dev.oil ;
             nodep != NULL;
             lastp = nodep, nodep = nodep->next) {

@@ -38,9 +38,9 @@
    Some operations like write also need to modify every
    per open info, so a linked list of every one is stored
    by a linked list by the global device data */
-struct ifacepref_per_open_node {
+struct ifacepref_per_open_info {
     int read_since_last_write;
-    struct ifacepref_per_open_node * next;
+    struct ifacepref_per_open_info * next;
 };
 
 /* global device data */
@@ -50,7 +50,7 @@ struct ifacepref_dev {
     dev_t  number;               /* device number */
     struct cdev cdev;            /* char device */
     struct semaphore sem;        /* semaphore for mutual exclusion on concurrent access */
-    struct ifacepref_per_open_node oil; /* open info list: empty node, it's just the head */
+    struct ifacepref_per_open_info oil; /* open info list: empty node, it's just the head */
     wait_queue_head_t newdataq;  /* to wait for new data to be read */
 };
 
