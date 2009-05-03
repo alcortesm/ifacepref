@@ -41,7 +41,6 @@ main(int argc, char ** argv)
         }
         buf[nr] = '\0'; /* just in case there is no '\0' in the device */
         fprintf(stdout, "%s\n", buf);
-        fflush(stdout);
 
         /* we want to keep reading at the beginning */
         off_t off = 0;
