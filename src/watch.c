@@ -17,7 +17,7 @@ main(int argc, char ** argv)
     int fd;
     fd = open(PATH, O_RDONLY);
     if (fd == -1) {
-        perror("open()");
+        perror(PATH);
         exit(EXIT_FAILURE);
     }
 
@@ -39,10 +39,11 @@ main(int argc, char ** argv)
             perror("read()");
             exit(EXIT_FAILURE);
         }
-        buf[nr] = '\0'; /* just in case there is no '\0' in the device */
+        buf[IFNAMSIZ] = '\0'; /* just in case there is no '\0' in the device */
         fprintf(stdout, "%s\n", buf);
         fflush(stdout);
 
+        /* we want to keep reading at the beginning */
         off_t off = 0;
         off = lseek(fd, off, SEEK_SET);
         if (off == (off_t) -1) {

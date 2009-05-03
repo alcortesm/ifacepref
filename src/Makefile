@@ -15,7 +15,9 @@ install: default
 	cp ifacepref_load /tmp/
 	cp ifacepref_unload /tmp/
 	cp ifacepref_test /tmp/
-	cp ifacepref_watcher_cli /tmp/
+	cp ifacepref_read /tmp/
+	cp ifacepref_write /tmp/
+	cp ifacepref_watch /tmp/
 	mkdir -p ${HOME}/man/man4/
 	cp ifacepref.4  ${HOME}/man/man4/
 
@@ -35,8 +37,20 @@ else
     KERNELDIR ?= $(modulesdir)
     PWD := $(shell pwd)
 
-default: ifacepref_test ifacepref_watcher_cli
+default: ifacepref_test ifacepref_watch ifacepref_read ifacepref_write
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um modules
+
+ifacepref_write: write.o
+	$(CC) -Wall -g -o ifacepref_write write.o
+
+write.o: write.c
+	$(CC) -Wall -g -c write.c
+
+ifacepref_read: read.o
+	$(CC) -Wall -g -o ifacepref_read read.o
+
+read.o: read.c
+	$(CC) -Wall -g -c read.c
 
 ifacepref_test: test.o
 	$(CC) -Wall -g -o ifacepref_test test.o
@@ -44,17 +58,17 @@ ifacepref_test: test.o
 test.o: test.c
 	$(CC) -Wall -g -c test.c
 
-ifacepref_watcher_cli: watcher_cli.o
-	$(CC) -Wall -g -o ifacepref_watcher_cli watcher_cli.o
+ifacepref_watch: watch.o
+	$(CC) -Wall -g -o ifacepref_watch watch.o
 
-watcher_cli.o: watcher_cli.c
-	$(CC) -Wall -g -c watcher_cli.c
+watch.o: watch.c
+	$(CC) -Wall -g -c watch.c
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=um clean
 	- rm -f modules.order
-	- rm -f ifacepref_test
-	- rm -f test.o
+	- rm -f *.o
+	- rm -f ifacepref_test ifacepref_read ifacepref_write ifacepref_watch
 
 endif
 
