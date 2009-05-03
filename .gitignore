@@ -15,4 +15,7 @@ src/*.mod.o
 src/*.o
 src/modules.order
 src/ifacepref_test
-src/ifacepref_watcher_cli
+src/ifacepref_watch
+src/ifacepref_read
+src/ifacepref_write
+

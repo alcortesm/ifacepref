@@ -39,7 +39,7 @@ main(int argc, char ** argv)
 
     close(fd);
     /* just in case there were no '\0' stored in the device */
-    buf[IFNAMSIZ] = '\0';
+    buf[nr] = '\0';
     printf("%s\n", buf);
     exit(EXIT_SUCCESS);
 }
