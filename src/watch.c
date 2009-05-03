@@ -39,7 +39,7 @@ main(int argc, char ** argv)
             perror("read()");
             exit(EXIT_FAILURE);
         }
-        buf[IFNAMSIZ] = '\0'; /* just in case there is no '\0' in the device */
+        buf[nr] = '\0'; /* just in case there is no '\0' in the device */
         fprintf(stdout, "%s\n", buf);
         fflush(stdout);
 
