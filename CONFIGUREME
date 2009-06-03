@@ -4,7 +4,7 @@
 # on your internet connection and CPU power.
 # If unsure choose some non-existent dir un your account:
 # EXTDATADIR=${HOME}/tmp/ifacepref-extdata
-EXTDATADIR=${HOME}/local/ifacepref-extdata
+EXTDATADIR=${HOME}/local/extdata/ifacepref
 
 # You should chose a linux version to work with, I suggest
 # the last stable vanilla version.
