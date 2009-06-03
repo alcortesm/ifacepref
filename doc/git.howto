@@ -55,18 +55,18 @@ Para que Alberto añada los cambios en el repositorio principal:
  ; cd ~/mnt/git-repos/ifacepref
 
  # añadimos un nuevo "remote" y nos bajamos los cambios
- # git remote add raven file:///home/alcortes/local/git-cache/ifacepref/
- ; git fetch raven
+ # git remote add local file:///home/alcortes/local/git-cache/ifacepref/
+ ; git fetch local
 
  # observamos los cambios
- ; git log raven/master ^master
+ ; git log local/master ^master
 
  # cuando estamos contentos con los cambios hacemos merge
  ; git checkout master
- ; git merge raven/master
+ ; git merge local/master
 
  # borramos el remote
- # git remote rm raven
+ # git remote rm local
 
  ; cd
  ; unmount-git-repos
