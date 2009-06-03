@@ -76,10 +76,10 @@ Para que Alberto añada los cambios en el repositorio principal:
 Si queremos crear una nueva branch para los cambios remotos:
 
  ; # después del fetch
- ; git checkout -b raven-fix raven/master
+ ; git checkout -b local-fix local/master
 
  ; # el merge lo podemos hacer sobre ella
- ; git merge raven-fix
+ ; git merge local-fix
 
  ; # si queremos borrarla luego
- ; git branch -d raven-fix
+ ; git branch -d local-fix
